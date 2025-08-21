@@ -3,21 +3,21 @@
 # Copy the base environment file
 cp railway-variables.env .env
 
-# Export database environment variables to shell
-# Check if Railway PostgreSQL variables exist, otherwise use direct variables
+# Check if Railway PostgreSQL variables exist, otherwise use SQLite
 if [ -n "$PGHOST" ]; then
     export DB_HOST=$PGHOST
     export DB_PORT=$PGPORT
     export DB_DATABASE=$PGDATABASE
     export DB_USERNAME=$PGUSER
     export DB_PASSWORD=$PGPASSWORD
+    export DB_CONNECTION=pgsql
 else
-    # Try to use direct DB_ variables if they exist
-    export DB_HOST=${DB_HOST:-localhost}
-    export DB_PORT=${DB_PORT:-5432}
-    export DB_DATABASE=${DB_DATABASE:-postgres}
-    export DB_USERNAME=${DB_USERNAME:-postgres}
-    export DB_PASSWORD=${DB_PASSWORD:-}
+    # Use SQLite as fallback
+    export DB_CONNECTION=sqlite
+    export DB_DATABASE=database/database.sqlite
+    # Create SQLite database file
+    mkdir -p database
+    touch database/database.sqlite
 fi
 
 # Force HTTPS for Railway
