@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "cp railway-variables.env .env && echo \"DB_HOST=$PGHOST\" >> .env && echo \"DB_PORT=$PGPORT\" >> .env && echo \"DB_DATABASE=$PGDATABASE\" >> .env && echo \"DB_USERNAME=$PGUSER\" >> .env && echo \"DB_PASSWORD=$PGPASSWORD\" >> .env && php artisan key:generate --force && php artisan migrate --force && php artisan db:seed --force && php artisan storage:link && php -S 0.0.0.0:$PORT -t public/",
+    "startCommand": "chmod +x railway-startup.sh && ./railway-startup.sh",
     "healthcheckPath": "/health.php",
     "healthcheckTimeout": 120,
     "restartPolicyType": "ON_FAILURE",

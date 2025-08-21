@@ -1,16 +1,26 @@
 #!/bin/bash
 
-echo "🚀 Iniciando Portfolio API..."
+# Copy the base environment file
+cp railway-variables.env .env
 
-# Configurar Laravel
+# Export database environment variables to shell
+export DB_HOST=$PGHOST
+export DB_PORT=$PGPORT
+export DB_DATABASE=$PGDATABASE
+export DB_USERNAME=$PGUSER
+export DB_PASSWORD=$PGPASSWORD
+
+# Generate application key
 php artisan key:generate --force
+
+# Run migrations
 php artisan migrate --force
+
+# Seed database
 php artisan db:seed --force
+
+# Create storage link
 php artisan storage:link
 
-echo "✅ Laravel configurado correctamente"
-echo "🌐 Iniciando servidor Apache..."
-
-# Iniciar Apache en el puerto correcto
-echo "🌐 Iniciando Apache en puerto $PORT..."
-exec vendor/bin/heroku-php-apache2 public/ -C apache.conf -p $PORT
+# Start the server
+php -S 0.0.0.0:$PORT -t public/
