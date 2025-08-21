@@ -10,6 +10,10 @@ export DB_DATABASE=$PGDATABASE
 export DB_USERNAME=$PGUSER
 export DB_PASSWORD=$PGPASSWORD
 
+# Force HTTPS for Railway
+export FORCE_HTTPS=true
+export ASSET_URL=https://web-production-eeecb.up.railway.app
+
 # Generate application key
 php artisan key:generate --force
 
