@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "php artisan key:generate --force && php artisan migrate --force && php artisan db:seed --force && php artisan storage:link && php -S 0.0.0.0:$PORT -t public/",
+    "startCommand": "cp railway-variables.env .env && php artisan key:generate --force && php artisan migrate --force && php artisan db:seed --force && php artisan storage:link && php -S 0.0.0.0:$PORT -t public/",
     "healthcheckPath": "/health.php",
     "healthcheckTimeout": 120,
     "restartPolicyType": "ON_FAILURE",
