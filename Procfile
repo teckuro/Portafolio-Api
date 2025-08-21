@@ -1,1 +1,1 @@
-web: vendor/bin/heroku-php-apache2 public/ -C apache.conf
+web: bash railway-startup.sh
