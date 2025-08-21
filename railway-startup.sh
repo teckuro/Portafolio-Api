@@ -14,8 +14,19 @@ export DB_PASSWORD=$PGPASSWORD
 export FORCE_HTTPS=true
 export ASSET_URL=https://web-production-eeecb.up.railway.app
 
+# Debug: Print database connection info (without password)
+echo "Database connection info:"
+echo "DB_HOST: $DB_HOST"
+echo "DB_PORT: $DB_PORT"
+echo "DB_DATABASE: $DB_DATABASE"
+echo "DB_USERNAME: $DB_USERNAME"
+
 # Generate application key
 php artisan key:generate --force
+
+# Test database connection before migrations
+echo "Testing database connection..."
+php artisan tinker --execute="try { DB::connection()->getPdo(); echo 'Database connection successful'; } catch (Exception \$e) { echo 'Database connection failed: ' . \$e->getMessage(); }"
 
 # Run migrations
 php artisan migrate --force
