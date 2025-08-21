@@ -1,1 +1,1 @@
-web: bash debug-startup.sh
+web: bash fast-startup.sh
