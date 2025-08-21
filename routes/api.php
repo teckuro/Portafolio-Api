@@ -30,6 +30,34 @@ Route::get('/test', function () {
     ]);
 });
 
+// Ruta de diagnóstico para verificar la base de datos
+Route::get('/debug', function () {
+    try {
+        // Verificar conexión a la base de datos
+        \DB::connection()->getPdo();
+        
+        // Verificar si la tabla works existe
+        $tableExists = \Schema::hasTable('works');
+        
+        // Contar registros en la tabla works
+        $worksCount = $tableExists ? \App\Models\Work::count() : 0;
+        
+        return response()->json([
+            'database_connected' => true,
+            'works_table_exists' => $tableExists,
+            'works_count' => $worksCount,
+            'database_name' => \DB::connection()->getDatabaseName(),
+            'timestamp' => now()->toISOString()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'database_connected' => false,
+            'error' => $e->getMessage(),
+            'timestamp' => now()->toISOString()
+        ], 500);
+    }
+});
+
 // Rutas públicas para el frontend (sin autenticación)
 Route::get('/projects', [ProjectController::class, 'index']);
 Route::get('/projects/featured', [ProjectController::class, 'featured']);
