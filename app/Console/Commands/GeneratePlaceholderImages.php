@@ -44,33 +44,33 @@ class GeneratePlaceholderImages extends Command
 
         $generatedCount = 0;
 
-        // Generar imágenes para proyectos
+        // Generar imágenes SVG para proyectos
         $projects = Project::all();
         foreach ($projects as $project) {
             $filename = $this->generateFilename($project->title);
             $imagePath = "{$projectsDir}/{$filename}";
             
             if (!Storage::disk('public')->exists($imagePath)) {
-                $this->generatePlaceholderImage($imagePath, $project->title, '#2563eb');
-                $this->line("✓ Generada imagen para proyecto: {$project->title}");
+                $this->generateSvgPlaceholder($imagePath, $project->title, '#2563eb');
+                $this->line("✓ Generada imagen SVG para proyecto: {$project->title}");
                 $generatedCount++;
             }
         }
 
-        // Generar imágenes para trabajos
+        // Generar imágenes SVG para trabajos
         $works = Work::all();
         foreach ($works as $work) {
             $filename = $this->generateFilename($work->company);
             $imagePath = "{$worksDir}/{$filename}";
             
             if (!Storage::disk('public')->exists($imagePath)) {
-                $this->generatePlaceholderImage($imagePath, $work->company, '#059669');
-                $this->line("✓ Generada imagen para trabajo: {$work->company}");
+                $this->generateSvgPlaceholder($imagePath, $work->company, '#059669');
+                $this->line("✓ Generada imagen SVG para trabajo: {$work->company}");
                 $generatedCount++;
             }
         }
 
-        $this->info("✅ Generación completada. {$generatedCount} imágenes creadas.");
+        $this->info("✅ Generación completada. {$generatedCount} imágenes SVG creadas.");
     }
 
     /**
@@ -78,80 +78,67 @@ class GeneratePlaceholderImages extends Command
      */
     private function generateFilename($title): string
     {
-        return strtolower(str_replace([' ', '-', '_'], '', $title)) . '.jpg';
+        return strtolower(str_replace([' ', '-', '_'], '', $title)) . '.svg';
     }
 
     /**
-     * Generar imagen placeholder usando GD
+     * Generar imagen SVG placeholder
      */
-    private function generatePlaceholderImage($path, $text, $backgroundColor): void
+    private function generateSvgPlaceholder($path, $text, $backgroundColor): void
     {
         $width = 600;
         $height = 400;
         
-        // Crear imagen
-        $image = imagecreate($width, $height);
+        // Crear SVG placeholder
+        $svg = $this->createSvgPlaceholder($width, $height, $text, $backgroundColor);
         
-        // Definir colores
-        $bgColor = $this->hexToRgb($backgroundColor);
-        $textColor = imagecolorallocate($image, 255, 255, 255); // Blanco
-        $bgAllocated = imagecolorallocate($image, $bgColor['r'], $bgColor['g'], $bgColor['b']);
-        
-        // Rellenar fondo
-        imagefill($image, 0, 0, $bgAllocated);
-        
-        // Configurar fuente
-        $fontSize = 24;
-        $fontPath = storage_path('app/fonts/arial.ttf');
-        
-        // Si no existe la fuente, usar la predeterminada
-        if (!file_exists($fontPath)) {
-            $fontPath = 5; // Fuente predeterminada de GD
-        }
-        
-        // Calcular posición del texto
-        $bbox = imagettfbbox($fontSize, 0, $fontPath, $text);
-        $textWidth = $bbox[2] - $bbox[0];
-        $textHeight = $bbox[1] - $bbox[7];
-        
-        $x = ($width - $textWidth) / 2;
-        $y = ($height + $textHeight) / 2;
-        
-        // Dibujar texto
-        if (is_numeric($fontPath)) {
-            imagestring($image, $fontPath, $x, $y, $text, $textColor);
-        } else {
-            imagettftext($image, $fontSize, 0, $x, $y, $textColor, $fontPath, $text);
-        }
-        
-        // Guardar imagen
-        ob_start();
-        imagejpeg($image, null, 90);
-        $imageData = ob_get_clean();
-        
-        Storage::disk('public')->put($path, $imageData);
-        
-        // Liberar memoria
-        imagedestroy($image);
+        Storage::disk('public')->put($path, $svg);
     }
 
     /**
-     * Convertir color hexadecimal a RGB
+     * Crear SVG placeholder
      */
-    private function hexToRgb($hex): array
+    private function createSvgPlaceholder($width, $height, $text, $backgroundColor): string
     {
-        $hex = str_replace('#', '', $hex);
+        $textColor = '#ffffff';
+        $fontSize = 24;
+        $fontFamily = 'Arial, sans-serif';
         
-        if (strlen($hex) == 3) {
-            $r = hexdec(str_repeat(substr($hex, 0, 1), 2));
-            $g = hexdec(str_repeat(substr($hex, 1, 1), 2));
-            $b = hexdec(str_repeat(substr($hex, 2, 1), 2));
-        } else {
-            $r = hexdec(substr($hex, 0, 2));
-            $g = hexdec(substr($hex, 2, 2));
-            $b = hexdec(substr($hex, 4, 2));
-        }
+        // Calcular posición del texto (centrado)
+        $textX = $width / 2;
+        $textY = $height / 2 + $fontSize / 3;
         
-        return ['r' => $r, 'g' => $g, 'b' => $b];
+        return <<<SVG
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="{$width}" height="{$height}" viewBox="0 0 {$width} {$height}" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:{$backgroundColor};stop-opacity:1" />
+            <stop offset="100%" style="stop-color:{$backgroundColor};stop-opacity:0.8" />
+        </linearGradient>
+    </defs>
+    
+    <!-- Fondo -->
+    <rect width="{$width}" height="{$height}" fill="url(#gradient)"/>
+    
+    <!-- Texto -->
+    <text x="{$textX}" y="{$textY}" 
+          font-family="{$fontFamily}" 
+          font-size="{$fontSize}" 
+          font-weight="bold" 
+          fill="{$textColor}" 
+          text-anchor="middle" 
+          dominant-baseline="middle">
+        {$text}
+    </text>
+    
+    <!-- Icono de imagen -->
+    <g transform="translate(" . ($textX - 30) . ", " . ($textY + 50) . ")" fill="{$textColor}" opacity="0.3">
+        <rect x="0" y="0" width="60" height="40" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>
+        <circle cx="15" cy="12" r="3" fill="currentColor"/>
+        <polygon points="0,32 20,20 40,25 60,15 60,40 0,40" fill="currentColor"/>
+    </g>
+</svg>
+SVG;
     }
 }

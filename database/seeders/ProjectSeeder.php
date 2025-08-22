@@ -22,7 +22,7 @@ class ProjectSeeder extends Seeder
                 'title' => 'Portfolio Personal',
                 'description' => 'Portfolio personal desarrollado con Angular y Laravel. Incluye gestión de proyectos, experiencia laboral y panel de administración completo con autenticación y autorización.',
                 'short_description' => 'Portfolio personal con Angular y Laravel',
-                'image_url' => "{$baseUrl}/portfoliopersonal.jpg",
+                'image_url' => "{$baseUrl}/portfoliopersonal.svg",
                 'project_url' => 'https://portfolio.example.com',
                 'github_url' => 'https://github.com/username/portfolio',
                 'tech_stack' => json_encode([
@@ -47,7 +47,7 @@ class ProjectSeeder extends Seeder
                 'title' => 'E-commerce Platform',
                 'description' => 'Plataforma de comercio electrónico completa con carrito de compras, gestión de productos, sistema de pagos integrado y panel de administración.',
                 'short_description' => 'Plataforma de comercio electrónico completa',
-                'image_url' => "{$baseUrl}/ecommerceplatform.jpg",
+                'image_url' => "{$baseUrl}/ecommerceplatform.svg",
                 'project_url' => 'https://ecommerce.example.com',
                 'github_url' => 'https://github.com/username/ecommerce',
                 'tech_stack' => json_encode([
@@ -71,7 +71,7 @@ class ProjectSeeder extends Seeder
                 'title' => 'Task Management App',
                 'description' => 'Aplicación de gestión de tareas con funcionalidades de drag & drop, filtros avanzados y notificaciones en tiempo real.',
                 'short_description' => 'App de gestión de tareas con drag & drop',
-                'image_url' => "{$baseUrl}/taskmanagementapp.jpg",
+                'image_url' => "{$baseUrl}/taskmanagementapp.svg",
                 'project_url' => 'https://tasks.example.com',
                 'github_url' => 'https://github.com/username/taskapp',
                 'tech_stack' => json_encode([
@@ -95,7 +95,7 @@ class ProjectSeeder extends Seeder
                 'title' => 'Weather Dashboard',
                 'description' => 'Dashboard del clima con gráficos interactivos, pronósticos detallados y múltiples ubicaciones usando APIs externas.',
                 'short_description' => 'Dashboard del clima con gráficos interactivos',
-                'image_url' => "{$baseUrl}/weatherdashboard.jpg",
+                'image_url' => "{$baseUrl}/weatherdashboard.svg",
                 'project_url' => 'https://weather.example.com',
                 'github_url' => 'https://github.com/username/weather',
                 'tech_stack' => json_encode([
