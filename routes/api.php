@@ -30,6 +30,38 @@ Route::get('/test', function () {
     ]);
 });
 
+// Ruta temporal para ejecutar comandos de corrección de imágenes
+Route::post('/fix-images', function () {
+    try {
+        // Ejecutar comando para generar imágenes placeholder
+        \Artisan::call('images:generate-placeholders');
+        $generateOutput = \Artisan::output();
+        
+        // Ejecutar comando para corregir URLs
+        \Artisan::call('images:fix-urls');
+        $fixOutput = \Artisan::output();
+        
+        // Limpiar cache
+        \Artisan::call('cache:clear');
+        \Artisan::call('config:clear');
+        \Artisan::call('route:clear');
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Comandos ejecutados correctamente',
+            'generate_output' => $generateOutput,
+            'fix_output' => $fixOutput,
+            'timestamp' => now()->toISOString()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error ejecutando comandos: ' . $e->getMessage(),
+            'timestamp' => now()->toISOString()
+        ], 500);
+    }
+});
+
 // Ruta para servir archivos de storage
 Route::get('/files/{path}', function ($path) {
     $fullPath = 'assets/uploads/' . $path;
