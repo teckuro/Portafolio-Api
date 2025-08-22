@@ -4,73 +4,96 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\File;
 
 class SetupStorage extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'storage:setup';
+    protected $description = 'Configurar y verificar el storage para archivos';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Configurar storage para Railway';
-
-    /**
-     * Execute the console command.
-     */
     public function handle()
     {
-        $this->info('Configurando storage para Railway...');
+        $this->info('Configurando storage...');
 
-        // Crear directorio public/storage si no existe
-        $publicStoragePath = public_path('storage');
-        if (!File::exists($publicStoragePath)) {
-            File::makeDirectory($publicStoragePath, 0755, true);
-            $this->line("✓ Creado directorio: {$publicStoragePath}");
+        // 1. Verificar que el directorio base existe
+        $basePath = 'assets/uploads';
+        if (!Storage::disk('public')->exists($basePath)) {
+            Storage::disk('public')->makeDirectory($basePath);
+            $this->line("✓ Creado directorio base: {$basePath}");
+        } else {
+            $this->line("✓ Directorio base existe: {$basePath}");
         }
 
-        // Crear directorio storage/app/public si no existe
-        $storagePath = storage_path('app/public');
-        if (!File::exists($storagePath)) {
-            File::makeDirectory($storagePath, 0755, true);
-            $this->line("✓ Creado directorio: {$storagePath}");
-        }
-
-        // Crear directorios de categorías
+        // 2. Crear subdirectorios
         $categories = ['projects', 'works', 'temp'];
         foreach ($categories as $category) {
-            $categoryPath = $storagePath . '/assets/uploads/' . $category;
-            if (!File::exists($categoryPath)) {
-                File::makeDirectory($categoryPath, 0755, true);
-                $this->line("✓ Creado directorio: {$categoryPath}");
+            $path = $basePath . '/' . $category;
+            if (!Storage::disk('public')->exists($path)) {
+                Storage::disk('public')->makeDirectory($path);
+                $this->line("✓ Creado directorio: {$path}");
+            } else {
+                $this->line("✓ Directorio existe: {$path}");
             }
         }
 
-        // Crear archivo .gitkeep en storage/app/public para mantener el directorio
-        $gitkeepFile = $storagePath . '/.gitkeep';
-        if (!File::exists($gitkeepFile)) {
-            File::put($gitkeepFile, '');
-            $this->line("✓ Creado archivo .gitkeep en storage/app/public");
+        // 3. Verificar permisos
+        $this->info('Verificando permisos...');
+        $testPath = $basePath . '/test.txt';
+        $testContent = 'Test file created at ' . now();
+        
+        try {
+            Storage::disk('public')->put($testPath, $testContent);
+            $this->line("✓ Permisos de escritura OK");
+            
+            // Leer el archivo de prueba
+            $readContent = Storage::disk('public')->get($testPath);
+            if ($readContent === $testContent) {
+                $this->line("✓ Permisos de lectura OK");
+            } else {
+                $this->error("✗ Error en permisos de lectura");
+            }
+            
+            // Eliminar archivo de prueba
+            Storage::disk('public')->delete($testPath);
+            $this->line("✓ Permisos de eliminación OK");
+            
+        } catch (\Exception $e) {
+            $this->error("✗ Error en permisos: " . $e->getMessage());
         }
 
-        // Crear archivo .gitkeep en public/storage para mantener el directorio
-        $publicGitkeepFile = $publicStoragePath . '/.gitkeep';
-        if (!File::exists($publicGitkeepFile)) {
-            File::put($publicGitkeepFile, '');
-            $this->line("✓ Creado archivo .gitkeep en public/storage");
+        // 4. Verificar archivos existentes
+        $this->info('Verificando archivos existentes...');
+        foreach ($categories as $category) {
+            $path = $basePath . '/' . $category;
+            $files = Storage::disk('public')->files($path);
+            $this->line("  - {$category}: " . count($files) . " archivos");
+            
+            foreach ($files as $file) {
+                $filename = basename($file);
+                $size = Storage::disk('public')->size($file);
+                $this->line("    * {$filename} ({$size} bytes)");
+            }
         }
 
-        // Verificar que el enlace simbólico existe
-        $this->info('Verificando enlace simbólico...');
-        $this->call('storage:link');
+        // 5. Verificar URL de acceso
+        $this->info('Verificando URLs de acceso...');
+        $baseUrl = config('app.url');
+        if (app()->environment('production')) {
+            $baseUrl = 'https://web-production-eeecb.up.railway.app';
+        }
+        
+        $this->line("  - URL base: {$baseUrl}");
+        $this->line("  - URL de archivos: {$baseUrl}/api/files/");
+        
+        // 6. Verificar symlink
+        $this->info('Verificando symlink...');
+        $symlinkPath = public_path('storage');
+        if (is_link($symlinkPath)) {
+            $this->line("✓ Symlink existe: {$symlinkPath}");
+        } else {
+            $this->warn("⚠ Symlink no existe: {$symlinkPath}");
+            $this->line("  Ejecuta: php artisan storage:link");
+        }
 
-        $this->info('✅ Configuración de storage completada.');
+        $this->info('Configuración de storage completada.');
     }
 }

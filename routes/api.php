@@ -69,18 +69,33 @@ Route::get('/files/{path}', function ($path) {
     if (!Storage::disk('public')->exists($fullPath)) {
         return response()->json([
             'success' => false,
-            'message' => 'Archivo no encontrado'
+            'message' => 'Archivo no encontrado: ' . $fullPath
         ], 404);
     }
     
-    $file = Storage::disk('public')->get($fullPath);
-    $mimeType = Storage::disk('public')->mimeType($fullPath);
-    
-    return response($file, 200, [
-        'Content-Type' => $mimeType,
-        'Cache-Control' => 'public, max-age=31536000',
-        'Access-Control-Allow-Origin' => '*',
-    ]);
+    try {
+        $file = Storage::disk('public')->get($fullPath);
+        $mimeType = Storage::disk('public')->mimeType($fullPath);
+        
+        if (!$file) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al leer el archivo'
+            ], 500);
+        }
+        
+        return response($file, 200, [
+            'Content-Type' => $mimeType ?: 'application/octet-stream',
+            'Cache-Control' => 'public, max-age=31536000',
+            'Access-Control-Allow-Origin' => '*',
+            'Content-Length' => Storage::disk('public')->size($fullPath),
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al servir el archivo: ' . $e->getMessage()
+        ], 500);
+    }
 })->where('path', '.*');
 
 // Ruta de diagnóstico para verificar la base de datos
