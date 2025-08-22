@@ -132,6 +132,34 @@ Route::get('/files/{path}', function ($path) {
     }
 })->where('path', '.*');
 
+// Ruta de prueba para servir un archivo específico
+Route::get('/test-file', function () {
+    $path = 'assets/uploads/projects/placeholder1.svg';
+    
+    if (!Storage::disk('public')->exists($path)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Archivo no encontrado: ' . $path
+        ], 404);
+    }
+    
+    try {
+        $file = Storage::disk('public')->get($path);
+        $mimeType = Storage::disk('public')->mimeType($path);
+        
+        return response($file, 200, [
+            'Content-Type' => $mimeType ?: 'application/octet-stream',
+            'Cache-Control' => 'public, max-age=31536000',
+            'Access-Control-Allow-Origin' => '*',
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al servir el archivo: ' . $e->getMessage()
+        ], 500);
+    }
+});
+
 // Ruta de diagnóstico para verificar la base de datos
 Route::get('/debug', function () {
     try {
