@@ -19,7 +19,20 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://localhost:4200', 'http://localhost:4201', 'http://127.0.0.1:4200', 'http://127.0.0.1:4201', 'https://*.vercel.app', 'https://*.netlify.app', 'https://*.github.io', 'https://*.railway.app', 'https://*.render.com'],
+    'allowed_origins' => [
+        'http://localhost:4200', 
+        'http://localhost:4201', 
+        'http://127.0.0.1:4200', 
+        'http://127.0.0.1:4201', 
+        'https://angular-portafolio.vercel.app',
+        'https://angular-portafolio-git-master-teckuro.vercel.app',
+        'https://angular-portafolio-teckuro.vercel.app',
+        'https://*.vercel.app', 
+        'https://*.netlify.app', 
+        'https://*.github.io', 
+        'https://*.railway.app', 
+        'https://*.render.com'
+    ],
 
     'allowed_origins_patterns' => [],
 
