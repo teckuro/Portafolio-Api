@@ -62,6 +62,37 @@ Route::post('/fix-images', function () {
     }
 });
 
+// Ruta para ejecutar comandos específicos en Railway
+Route::post('/execute-command', function (Request $request) {
+    try {
+        $command = $request->input('command');
+        
+        if (!$command) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Comando no especificado'
+            ], 400);
+        }
+        
+        $exitCode = \Artisan::call($command);
+        $output = \Artisan::output();
+        
+        return response()->json([
+            'success' => true,
+            'command' => $command,
+            'exit_code' => $exitCode,
+            'output' => $output,
+            'timestamp' => now()->toISOString()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error ejecutando comando: ' . $e->getMessage(),
+            'timestamp' => now()->toISOString()
+        ], 500);
+    }
+});
+
 // Ruta para servir archivos de storage
 Route::get('/files/{path}', function ($path) {
     // La ruta llega como /files/projects/filename.png
