@@ -94,44 +94,6 @@ Route::post('/execute-command', function (Request $request) {
     }
 });
 
-// Ruta para servir archivos de storage
-Route::get('/files/{path}', function ($path) {
-    // La ruta llega como /files/projects/filename.png
-    // Necesitamos construir la ruta completa para storage
-    $fullPath = 'assets/uploads/' . $path;
-    
-    if (!Storage::disk('public')->exists($fullPath)) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Archivo no encontrado: ' . $fullPath
-        ], 404);
-    }
-    
-    try {
-        $file = Storage::disk('public')->get($fullPath);
-        $mimeType = Storage::disk('public')->mimeType($fullPath);
-        
-        if (!$file) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al leer el archivo'
-            ], 500);
-        }
-        
-        return response($file, 200, [
-            'Content-Type' => $mimeType ?: 'application/octet-stream',
-            'Cache-Control' => 'public, max-age=31536000',
-            'Access-Control-Allow-Origin' => '*',
-            'Content-Length' => Storage::disk('public')->size($fullPath),
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Error al servir el archivo: ' . $e->getMessage()
-        ], 500);
-    }
-})->where('path', '.*');
-
 // Ruta de prueba para servir un archivo específico
 Route::get('/test-file', function () {
     $path = 'assets/uploads/projects/placeholder1.svg';
@@ -160,7 +122,7 @@ Route::get('/test-file', function () {
     }
 });
 
-// Rutas específicas para servir archivos por categoría
+// Rutas específicas para servir archivos por categoría (DEBEN ir ANTES de la ruta dinámica)
 Route::get('/files/projects/{filename}', function ($filename) {
     $path = 'assets/uploads/projects/' . $filename;
     
@@ -241,6 +203,44 @@ Route::get('/files/temp/{filename}', function ($filename) {
         ], 500);
     }
 });
+
+// Ruta dinámica para servir archivos (DEBE ir DESPUÉS de las rutas específicas)
+Route::get('/files/{path}', function ($path) {
+    // La ruta llega como /files/projects/filename.png
+    // Necesitamos construir la ruta completa para storage
+    $fullPath = 'assets/uploads/' . $path;
+    
+    if (!Storage::disk('public')->exists($fullPath)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Archivo no encontrado: ' . $fullPath
+        ], 404);
+    }
+    
+    try {
+        $file = Storage::disk('public')->get($fullPath);
+        $mimeType = Storage::disk('public')->mimeType($fullPath);
+        
+        if (!$file) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al leer el archivo'
+            ], 500);
+        }
+        
+        return response($file, 200, [
+            'Content-Type' => $mimeType ?: 'application/octet-stream',
+            'Cache-Control' => 'public, max-age=31536000',
+            'Access-Control-Allow-Origin' => '*',
+            'Content-Length' => Storage::disk('public')->size($fullPath),
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al servir el archivo: ' . $e->getMessage()
+        ], 500);
+    }
+})->where('path', '.*');
 
 // Ruta de diagnóstico para verificar la base de datos
 Route::get('/debug', function () {
