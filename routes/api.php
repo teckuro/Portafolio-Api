@@ -159,6 +159,34 @@ Route::get('/serve-file/{path}', function ($path) {
     }
 })->where('path', '.*');
 
+// Ruta específica para la imagen del primer proyecto
+Route::get('/serve-project-image/1', function () {
+    $path = 'assets/uploads/projects/projects_1755894693_n3OLC5Ee.png';
+    
+    if (!Storage::disk('public')->exists($path)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Archivo no encontrado: ' . $path
+        ], 404);
+    }
+    
+    try {
+        $file = Storage::disk('public')->get($path);
+        $mimeType = Storage::disk('public')->mimeType($path);
+        
+        return response($file, 200, [
+            'Content-Type' => $mimeType ?: 'application/octet-stream',
+            'Cache-Control' => 'public, max-age=31536000',
+            'Access-Control-Allow-Origin' => '*',
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al servir el archivo: ' . $e->getMessage()
+        ], 500);
+    }
+});
+
 // Rutas específicas para imágenes placeholder (que sabemos que funcionan)
 Route::get('/placeholder/projects/1', function () {
     $path = 'assets/uploads/projects/placeholder1.svg';
