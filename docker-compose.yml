@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # Aplicación Laravel desde Docker Hub
   app:
-    image: jhuerta20/portfolio-api:latest
+    image: jhuerta20/api-portafolio:latest
     container_name: portfolio-api
     ports:
       - "8000:80"

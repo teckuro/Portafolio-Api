@@ -6,7 +6,7 @@ setlocal enabledelayedexpansion
 
 REM Configuración
 set DOCKER_USERNAME=jhuerta20
-set IMAGE_NAME=portfolio-api
+set IMAGE_NAME=api-portafolio
 set VERSION=%1
 if "%VERSION%"=="" set VERSION=latest
 

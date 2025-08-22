@@ -7,7 +7,7 @@ set -e
 
 # Configuración
 DOCKER_USERNAME="jhuerta20"
-IMAGE_NAME="portfolio-api"
+IMAGE_NAME="api-portafolio"
 VERSION=${1:-latest}
 
 echo "🐳 Construyendo imagen Docker..."

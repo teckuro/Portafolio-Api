@@ -38,3 +38,6 @@ phpunit.xml
 # Development
 docker-compose.yml
 docker-compose.override.yml
+
+# Storage symlink
+public/storage
