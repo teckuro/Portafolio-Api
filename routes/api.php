@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Api\Admin\AuthController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\WorkController;
