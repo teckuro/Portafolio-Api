@@ -25,20 +25,20 @@ class ProjectSeeder extends Seeder
                 'image_url' => "{$baseUrl}/portfoliopersonal.svg",
                 'project_url' => 'https://portfolio.example.com',
                 'github_url' => 'https://github.com/username/portfolio',
-                'tech_stack' => json_encode([
+                'tech_stack' => [
                     'Angular',
                     'Laravel',
                     'PHP',
                     'TypeScript',
                     'CSS',
                     'SQLite'
-                ]),
-                'features' => json_encode([
+                ],
+                'features' => [
                     'Panel de administración',
                     'Gestión de proyectos',
                     'Experiencia laboral',
                     'Autenticación'
-                ]),
+                ],
                 'status' => 'active',
                 'is_featured' => true,
                 'order' => 1
@@ -50,19 +50,19 @@ class ProjectSeeder extends Seeder
                 'image_url' => "{$baseUrl}/ecommerceplatform.svg",
                 'project_url' => 'https://ecommerce.example.com',
                 'github_url' => 'https://github.com/username/ecommerce',
-                'tech_stack' => json_encode([
+                'tech_stack' => [
                     'React',
                     'Node.js',
                     'Express',
                     'MongoDB',
                     'Stripe'
-                ]),
-                'features' => json_encode([
+                ],
+                'features' => [
                     'Carrito de compras',
                     'Sistema de pagos',
                     'Gestión de productos',
                     'Panel admin'
-                ]),
+                ],
                 'status' => 'active',
                 'is_featured' => true,
                 'order' => 2
@@ -74,19 +74,19 @@ class ProjectSeeder extends Seeder
                 'image_url' => "{$baseUrl}/taskmanagementapp.svg",
                 'project_url' => 'https://tasks.example.com',
                 'github_url' => 'https://github.com/username/taskapp',
-                'tech_stack' => json_encode([
+                'tech_stack' => [
                     'Vue.js',
                     'Laravel',
                     'WebSockets',
                     'MySQL',
                     'Redis'
-                ]),
-                'features' => json_encode([
+                ],
+                'features' => [
                     'Drag & Drop',
                     'Filtros avanzados',
                     'Notificaciones real-time',
                     'Colaboración'
-                ]),
+                ],
                 'status' => 'active',
                 'is_featured' => false,
                 'order' => 3
@@ -98,18 +98,18 @@ class ProjectSeeder extends Seeder
                 'image_url' => "{$baseUrl}/weatherdashboard.svg",
                 'project_url' => 'https://weather.example.com',
                 'github_url' => 'https://github.com/username/weather',
-                'tech_stack' => json_encode([
+                'tech_stack' => [
                     'Angular',
                     'Chart.js',
                     'OpenWeather API',
                     'Bootstrap'
-                ]),
-                'features' => json_encode([
+                ],
+                'features' => [
                     'Gráficos interactivos',
                     'Pronósticos detallados',
                     'Múltiples ubicaciones',
                     'API externa'
-                ]),
+                ],
                 'status' => 'active',
                 'is_featured' => false,
                 'order' => 4

@@ -24,19 +24,19 @@ class WorkSeeder extends Seeder
                 'start_date' => '2021-09-08',
                 'end_date' => null,
                 'location' => 'Santiago,chile',
-                'tech' => json_encode([
+                'tech' => [
                     'Angular',
                     'Laravel',
                     'PHP',
                     'TypeScript',
                     'MySQL',
                     'Docker'
-                ]),
-                'achievements' => json_encode([
+                ],
+                'achievements' => [
                     'Reduje el tiempo de carga de la aplicación en un 40%',
                     'Implementé CI/CD con GitHub Actions',
                     'Mentoré a 3 desarrolladores junior'
-                ]),
+                ],
                 'is_current' => true,
                 'company_url' => 'https://www.desis.cl/',
                 'status' => 'active'
@@ -48,19 +48,19 @@ class WorkSeeder extends Seeder
                 'start_date' => '2020-06-01',
                 'end_date' => '2021-02-01',
                 'location' => 'Santiago,chile',
-                'tech' => json_encode([
+                'tech' => [
                     'PHP',
                     'MySQL',
                     'HTML5',
                     'CSS3',
                     'JavaScript',
                     'jQuery'
-                ]),
-                'achievements' => json_encode([
+                ],
+                'achievements' => [
                     'Desarrollé 2 aplicaciones web completas',
                     'Implementé sistema de autenticación',
                     'Participé en el diseño de la arquitectura de datos'
-                ]),
+                ],
                 'is_current' => false,
                 'company_url' => 'https://www.anidalatam.com/',
                 'status' => 'active'

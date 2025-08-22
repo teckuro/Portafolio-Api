@@ -4,70 +4,57 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\Project;
+use Illuminate\Support\Facades\DB;
 
 class FixProjectArrays extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'projects:fix-arrays';
+    protected $signature = 'fix:project-arrays';
+    protected $description = 'Arregla los arrays de tech_stack y features en la tabla projects';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Corregir tech_stack y features que estén almacenados como strings JSON';
-
-    /**
-     * Execute the console command.
-     */
     public function handle()
     {
-        $this->info('Iniciando corrección de arrays en proyectos...');
+        $this->info('Arreglando arrays en la tabla projects...');
 
         $projects = Project::all();
-        $fixedCount = 0;
+        $fixed = 0;
 
         foreach ($projects as $project) {
             $updated = false;
 
-            // Corregir tech_stack
+            // Arreglar tech_stack
             if (is_string($project->tech_stack)) {
                 try {
-                    $decoded = json_decode($project->tech_stack, true);
-                    if (is_array($decoded)) {
-                        $project->tech_stack = $decoded;
+                    $techStack = json_decode($project->tech_stack, true);
+                    if (is_array($techStack)) {
+                        $project->tech_stack = $techStack;
                         $updated = true;
-                        $this->line("✓ Corregido tech_stack para proyecto: {$project->title}");
+                        $this->line("  - Arreglado tech_stack para: {$project->title}");
                     }
                 } catch (\Exception $e) {
-                    $this->error("✗ Error decodificando tech_stack para proyecto: {$project->title}");
+                    $this->error("  - Error decodificando tech_stack para: {$project->title}");
                 }
             }
 
-            // Corregir features
+            // Arreglar features
             if (is_string($project->features)) {
                 try {
-                    $decoded = json_decode($project->features, true);
-                    if (is_array($decoded)) {
-                        $project->features = $decoded;
+                    $features = json_decode($project->features, true);
+                    if (is_array($features)) {
+                        $project->features = $features;
                         $updated = true;
-                        $this->line("✓ Corregido features para proyecto: {$project->title}");
+                        $this->line("  - Arreglado features para: {$project->title}");
                     }
                 } catch (\Exception $e) {
-                    $this->error("✗ Error decodificando features para proyecto: {$project->title}");
+                    $this->error("  - Error decodificando features para: {$project->title}");
                 }
             }
 
             if ($updated) {
                 $project->save();
-                $fixedCount++;
+                $fixed++;
             }
         }
 
-        $this->info("✅ Corrección completada. {$fixedCount} proyectos actualizados.");
+        $this->info("Proceso completado. {$fixed} proyectos actualizados.");
     }
 }
