@@ -1,8 +1,6 @@
 # Git
 .git
 .gitignore
-README.md
-CHANGELOG.md
 
 # Node modules
 node_modules
@@ -23,7 +21,7 @@ npm-debug.log
 .DS_Store
 Thumbs.db
 
-# Laravel
+# Laravel logs and cache
 /storage/logs/*
 /storage/framework/cache/*
 /storage/framework/sessions/*
@@ -33,15 +31,10 @@ Thumbs.db
 # Composer
 composer.phar
 
-# PHPUnit
-/coverage
-/.phpunit.result.cache
-
 # Tests
 tests
 phpunit.xml
 
 # Development
-/vendor
 docker-compose.yml
 docker-compose.override.yml

@@ -1,0 +1,18 @@
+[phases.setup]
+nixPkgs = ["php82", "php82Extensions.gd", "php82Extensions.zip", "composer", "nginx"]
+
+[phases.install]
+cmds = [
+    "composer install --no-dev --optimize-autoloader --no-scripts"
+]
+
+[phases.build]
+cmds = [
+    "php artisan config:cache",
+    "php artisan route:cache", 
+    "php artisan view:cache",
+    "php artisan storage:link"
+]
+
+[start]
+cmd = "php artisan serve --host=0.0.0.0 --port=$PORT"

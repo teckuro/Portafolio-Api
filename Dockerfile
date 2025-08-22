@@ -1,12 +1,11 @@
-# Dockerfile optimizado para Laravel en Railway
-FROM php:8.2-apache
+# Dockerfile simplificado para Laravel en Railway
+FROM php:8.2-fpm
 
 # Establecer directorio de trabajo
 WORKDIR /var/www/html
 
 # Variables de entorno
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
-ENV TZ=America/Mexico_City
+ENV TZ=UTC
 
 # Instalar dependencias del sistema
 RUN apt-get update && apt-get install -y \
@@ -18,21 +17,15 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     zip \
     unzip \
-    sqlite3 \
-    libsqlite3-dev \
-    && docker-php-ext-install pdo_mysql pdo_sqlite mbstring exif pcntl bcmath gd zip \
+    nginx \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Configurar Apache
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
-RUN a2enmod rewrite headers
-
 # Instalar Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
 
-# Copiar archivos de configuración de Composer primero (para cache de capas)
+# Copiar archivos de configuración de Composer primero
 COPY composer.json composer.lock ./
 
 # Instalar dependencias de PHP
@@ -47,7 +40,7 @@ RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage \
     && chmod -R 775 /var/www/html/bootstrap/cache
 
-# Crear directorios de storage si no existen
+# Crear directorios de storage
 RUN mkdir -p storage/logs \
     && mkdir -p storage/framework/cache \
     && mkdir -p storage/framework/sessions \
@@ -56,69 +49,74 @@ RUN mkdir -p storage/logs \
     && mkdir -p storage/app/public/assets/uploads/works \
     && mkdir -p storage/app/public/assets/uploads/temp
 
-# Configurar Apache para Laravel
-RUN echo '<VirtualHost *:80>\n\
-    ServerName localhost\n\
-    DocumentRoot /var/www/html/public\n\
+# Configurar Nginx
+RUN echo 'server {\n\
+    listen 80;\n\
+    server_name localhost;\n\
+    root /var/www/html/public;\n\
+    index index.php index.html;\n\
     \n\
-    <Directory /var/www/html/public>\n\
-    AllowOverride All\n\
-    Require all granted\n\
-    </Directory>\n\
+    location / {\n\
+        try_files $uri $uri/ /index.php?$query_string;\n\
+    }\n\
+    \n\
+    location ~ \.php$ {\n\
+        fastcgi_pass 127.0.0.1:9000;\n\
+        fastcgi_index index.php;\n\
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;\n\
+        include fastcgi_params;\n\
+    }\n\
     \n\
     # Headers para CORS\n\
-    Header always set Access-Control-Allow-Origin "*"\n\
-    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"\n\
-    Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"\n\
+    add_header Access-Control-Allow-Origin "*" always;\n\
+    add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;\n\
+    add_header Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With" always;\n\
     \n\
     # Configuración para archivos estáticos\n\
-    <LocationMatch "\\.(jpg|jpeg|png|gif|svg|webp|css|js|ico)$">\n\
-    ExpiresActive On\n\
-    ExpiresDefault "access plus 1 month"\n\
-    Header set Cache-Control "public, max-age=2592000"\n\
-    </LocationMatch>\n\
-    \n\
-    ErrorLog ${APACHE_LOG_DIR}/error.log\n\
-    CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
-    </VirtualHost>' > /etc/apache2/sites-available/000-default.conf
+    location ~* \.(jpg|jpeg|png|gif|svg|webp|css|js|ico)$ {\n\
+        expires 1M;\n\
+        add_header Cache-Control "public, max-age=2592000";\n\
+    }\n\
+}' > /etc/nginx/sites-available/default
 
 # Script de inicialización
 RUN echo '#!/bin/bash\n\
-    set -e\n\
-    \n\
-    # Generar key si no existe\n\
-    if [ ! -f .env ]; then\n\
+set -e\n\
+\n\
+# Generar key si no existe\n\
+if [ ! -f .env ]; then\n\
     cp .env.example .env\n\
-    fi\n\
-    \n\
-    # Verificar si APP_KEY está vacía\n\
-    if ! grep -q "APP_KEY=base64:" .env; then\n\
+fi\n\
+\n\
+# Verificar si APP_KEY está vacía\n\
+if ! grep -q "APP_KEY=base64:" .env; then\n\
     php artisan key:generate --no-interaction\n\
-    fi\n\
-    \n\
-    # Ejecutar migraciones\n\
-    php artisan migrate --force --no-interaction\n\
-    \n\
-    # Limpiar y optimizar\n\
-    php artisan config:cache\n\
-    php artisan route:cache\n\
-    php artisan view:cache\n\
-    \n\
-    # Crear storage link\n\
-    php artisan storage:link\n\
-    \n\
-    # Generar placeholders si no existen\n\
-    php artisan images:generate-placeholders\n\
-    \n\
-    # Seedear datos iniciales\n\
-    php artisan db:seed --force --no-interaction\n\
-    \n\
-    # Establecer permisos finales\n\
-    chown -R www-data:www-data /var/www/html/storage\n\
-    chmod -R 775 /var/www/html/storage\n\
-    \n\
-    # Iniciar Apache\n\
-    exec apache2-foreground' > /usr/local/bin/start.sh \
+fi\n\
+\n\
+# Ejecutar migraciones\n\
+php artisan migrate --force --no-interaction\n\
+\n\
+# Limpiar y optimizar\n\
+php artisan config:cache\n\
+php artisan route:cache\n\
+php artisan view:cache\n\
+\n\
+# Crear storage link\n\
+php artisan storage:link\n\
+\n\
+# Generar placeholders si no existen\n\
+php artisan images:generate-placeholders\n\
+\n\
+# Seedear datos iniciales\n\
+php artisan db:seed --force --no-interaction\n\
+\n\
+# Establecer permisos finales\n\
+chown -R www-data:www-data /var/www/html/storage\n\
+chmod -R 775 /var/www/html/storage\n\
+\n\
+# Iniciar servicios\n\
+service nginx start\n\
+php-fpm' > /usr/local/bin/start.sh \
     && chmod +x /usr/local/bin/start.sh
 
 # Exponer puerto
