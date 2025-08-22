@@ -95,6 +95,19 @@ class UploadController extends Controller
                 ], 500);
             }
 
+            // Verificar que el archivo se guardó correctamente
+            if (!Storage::disk('public')->exists($fullPath)) {
+                return response()->json([
+                    'success' => false,
+                    'data' => [
+                        'filename' => '',
+                        'url' => '',
+                        'path' => ''
+                    ],
+                    'message' => 'El archivo no se guardó correctamente'
+                ], 500);
+            }
+
             // Generar URL pública con la URL base correcta
             $url = $this->generatePublicUrl($fullPath);
 
@@ -103,7 +116,8 @@ class UploadController extends Controller
                 'data' => [
                     'filename' => $filename,
                     'url' => $url,
-                    'path' => $fullPath
+                    'path' => $fullPath,
+                    'size' => Storage::disk('public')->size($fullPath)
                 ],
                 'message' => 'Imagen subida exitosamente'
             ], 200);
