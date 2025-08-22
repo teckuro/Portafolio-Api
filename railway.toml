@@ -1,0 +1,21 @@
+[build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
+
+[variables]
+APP_ENV = "production"
+APP_DEBUG = "false"
+LOG_CHANNEL = "stderr"
+BROADCAST_DRIVER = "log"
+CACHE_DRIVER = "file"
+FILESYSTEM_DISK = "local"
+QUEUE_CONNECTION = "sync"
+SESSION_DRIVER = "file"
+SESSION_LIFETIME = "120"
+SESSION_ENCRYPT = "false"
+SESSION_PATH = "/"
+SESSION_DOMAIN = ""

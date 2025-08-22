@@ -1,27 +1,87 @@
-# 🎯 Portfolio API - Laravel Backend
+# Portfolio API
 
-API REST para portfolio personal desarrollada con Laravel 12.
+API REST limpia y optimizada para el portafolio personal, construida con Laravel y Docker.
 
-## 🌟 **Características**
+## 🚀 Características
 
--   ✅ **API REST completa** con Laravel 12
--   ✅ **Autenticación** con Laravel Sanctum
--   ✅ **Gestión de proyectos** (CRUD completo)
--   ✅ **Experiencia laboral** (CRUD completo)
--   ✅ **Upload de imágenes** para proyectos
--   ✅ **Base de datos PostgreSQL** optimizada
--   ✅ **CORS configurado** para frontend
--   ✅ **Seeders** con datos de ejemplo
+-   ✅ **API REST completa** para proyectos y experiencia laboral
+-   ✅ **Sistema de autenticación** con Laravel Sanctum
+-   ✅ **Upload de archivos** con optimización automática
+-   ✅ **Docker optimizado** para desarrollo y producción
+-   ✅ **CORS configurado** para frontend Angular
+-   ✅ **Rutas limpias y organizadas**
+-   ✅ **Base de datos con seeders**
 
-## 🚀 **Inicio Rápido**
+## 🛠️ Tecnologías
 
-### **Desarrollo Local**
+-   **Laravel 11** - Framework PHP
+-   **MySQL 8.0** - Base de datos
+-   **Docker & Docker Compose** - Containerización
+-   **Apache** - Servidor web
+-   **PHP 8.2** - Lenguaje backend
+
+## 📦 Estructura del proyecto
+
+```
+api-portafolio/
+├── app/
+│   ├── Console/Commands/     # Comandos Artisan
+│   ├── Http/Controllers/     # Controladores
+│   ├── Models/              # Modelos Eloquent
+│   └── Providers/           # Service Providers
+├── database/
+│   ├── migrations/          # Migraciones
+│   └── seeders/            # Seeders
+├── routes/
+│   └── api.php             # Rutas API limpias
+├── storage/
+│   └── app/public/assets/  # Archivos subidos
+├── Dockerfile              # Imagen Docker optimizada
+├── docker-compose.yml      # Entorno de desarrollo
+└── railway.toml           # Configuración Railway
+```
+
+## 🚀 Inicio rápido
+
+### Opción 1: Docker (Recomendado)
+
+#### Windows:
 
 ```bash
-# Clonar repositorio
-git clone https://github.com/teckuro/Portafolio-Api.git
-cd Portafolio-Api
+# Clonar e ir al directorio
+cd api-portafolio
 
+# Iniciar entorno de desarrollo
+./start-dev.bat
+```
+
+#### Linux/Mac:
+
+```bash
+# Clonar e ir al directorio
+cd api-portafolio
+
+# Dar permisos y ejecutar
+chmod +x start-dev.sh
+./start-dev.sh
+```
+
+#### Manual con Docker:
+
+```bash
+# Construir e iniciar
+docker-compose up -d --build
+
+# Ver logs
+docker-compose logs -f
+
+# Detener
+docker-compose down
+```
+
+### Opción 2: Instalación tradicional
+
+```bash
 # Instalar dependencias
 composer install
 
@@ -29,124 +89,176 @@ composer install
 cp .env.example .env
 php artisan key:generate
 
-# Configurar base de datos
+# Configurar base de datos en .env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_DATABASE=portfolio
+DB_USERNAME=root
+DB_PASSWORD=
+
+# Ejecutar migraciones y seeders
 php artisan migrate --seed
 
+# Generar placeholders
+php artisan images:generate-placeholders
+
 # Iniciar servidor
-php artisan serve
+php artisan serve --host=0.0.0.0 --port=8000
 ```
 
-### **Scripts Automatizados**
+## 🌐 Endpoints principales
 
-```bash
-# Iniciar todo automáticamente
-scripts/start-api.bat
+### Públicos
 
-# Configurar base de datos
-scripts/setup-database.bat
+-   `GET /api/health` - Estado de la API
+-   `GET /api/projects` - Lista de proyectos
+-   `GET /api/projects/featured` - Proyectos destacados
+-   `GET /api/works` - Experiencia laboral
+-   `GET /api/works/current` - Trabajo actual
 
-# Configurar storage
-scripts/setup-storage.bat
-```
+### Archivos
 
-## 📋 **URLs de Acceso**
+-   `GET /api/files/{path}` - Servir archivos
+-   `GET /api/placeholder/{category}/{number}` - Placeholders
 
--   **API:** http://127.0.0.1:8000
--   **Test:** http://127.0.0.1:8000/api/test
--   **Health:** http://127.0.0.1:8000/health.php
-
-## 🔑 **Credenciales por Defecto**
-
--   **Email:** `admin@portfolio.com`
--   **Password:** `password123`
-
-## 📚 **Endpoints Principales**
-
-### **Públicos (Frontend)**
-
--   `GET /api/test` - Verificar estado de la API
--   `GET /api/portfolio/projects` - Listar todos los proyectos
--   `GET /api/portfolio/projects/featured` - Proyectos destacados
--   `GET /api/portfolio/works` - Listar experiencia laboral
-
-### **Administración**
+### Administración
 
 -   `POST /api/admin/login` - Iniciar sesión
--   `GET /api/admin/projects` - Gestionar proyectos
--   `GET /api/admin/works` - Gestionar experiencia
+-   `POST /api/admin/upload` - Subir archivos
+-   `GET /api/admin/projects/stats` - Estadísticas
 
-## 🗄️ **Base de Datos**
+### Protegidos (requieren autenticación)
 
-### **Tablas Principales**
+-   `POST /api/admin/projects` - Crear proyecto
+-   `PUT /api/admin/projects/{id}` - Actualizar proyecto
+-   `DELETE /api/admin/projects/{id}` - Eliminar proyecto
+
+## 📊 URLs de desarrollo
+
+-   **API**: http://localhost:8000
+-   **Health Check**: http://localhost:8000/api/health
+-   **phpMyAdmin**: http://localhost:8080
+-   **Documentación**: http://localhost:8000/api
+
+## 🗄️ Base de datos
+
+### Estructura principal:
 
 -   `admin_users` - Usuarios administradores
--   `projects` - Proyectos del portfolio
+-   `projects` - Proyectos del portafolio
 -   `works` - Experiencia laboral
 
-## 🔧 **Requisitos**
+### Datos de prueba:
 
--   **PHP 8.2+**
--   **Composer**
--   **MySQL/PostgreSQL**
--   **XAMPP** (recomendado)
+```sql
+-- Usuario admin por defecto
+email: admin@portfolio.com
+password: admin123
 
-## 🚀 **Despliegue en Railway**
+-- Datos de ejemplo incluidos via seeders
+```
 
-1. **Conectar repositorio** en [railway.app](https://railway.app)
-2. **Agregar base de datos** PostgreSQL
-3. **Configurar variables de entorno**:
-    ```env
-    APP_NAME="Portfolio API"
-    APP_ENV=production
-    APP_DEBUG=false
-    DB_CONNECTION=pgsql
-    DB_HOST=${PGHOST}
-    DB_PORT=${PGPORT}
-    DB_DATABASE=${PGDATABASE}
-    DB_USERNAME=${PGUSER}
-    DB_PASSWORD=${PGPASSWORD}
+## 🔧 Configuración
+
+### Variables de entorno importantes:
+
+```env
+APP_URL=http://localhost:8000
+DB_CONNECTION=mysql
+CORS_ALLOWED_ORIGINS=http://localhost:4200
+UPLOAD_MAX_SIZE=5120
+```
+
+### CORS:
+
+Configurado para permitir requests desde:
+
+-   `http://localhost:4200` (Angular)
+-   `http://localhost:3000` (React/Next.js)
+
+## 🚀 Deployment en Railway
+
+### Con Docker:
+
+1. Conectar repositorio a Railway
+2. Railway detectará automáticamente el `Dockerfile`
+3. Configurar variables de entorno en Railway
+4. Deploy automático
+
+### Variables de entorno en Railway:
+
+```env
+APP_ENV=production
+APP_DEBUG=false
+DB_CONNECTION=mysql
+DATABASE_URL=${{MySQL.DATABASE_URL}}
+```
+
+## 🧹 Comandos útiles
+
+### Docker:
+
+```bash
+# Ver logs en tiempo real
+docker-compose logs -f app
+
+# Ejecutar comandos Artisan
+docker-compose exec app php artisan migrate
+
+# Acceder al contenedor
+docker-compose exec app bash
+
+# Limpiar todo
+docker-compose down -v --rmi all
+```
+
+### Laravel:
+
+```bash
+# Limpiar cache
+php artisan cache:clear
+php artisan config:clear
+php artisan route:clear
+
+# Generar placeholders
+php artisan images:generate-placeholders
+
+# Setup storage
+php artisan storage:setup
+```
+
+## 📝 Notas importantes
+
+-   ✅ Las rutas han sido **completamente limpiadas**
+-   ✅ Se eliminaron **comandos innecesarios**
+-   ✅ **Docker optimizado** para desarrollo y producción
+-   ✅ **CORS configurado** correctamente
+-   ✅ **Upload de archivos** funcionando
+-   ✅ **Placeholders** implementados como fallback
+
+## 🔍 Troubleshooting
+
+### Problemas comunes:
+
+1. **Puerto 8000 ocupado:**
+
+    ```bash
+    # Cambiar puerto en docker-compose.yml
+    ports: - "8001:80"
     ```
 
-## 🧪 **Testing**
+2. **Permisos de storage:**
 
-```bash
-# Verificar que la API funciona
-curl http://127.0.0.1:8000/api/test
+    ```bash
+    docker-compose exec app chown -R www-data:www-data storage
+    ```
 
-# Obtener proyectos
-curl http://127.0.0.1:8000/api/portfolio/projects
+3. **Base de datos no conecta:**
+    ```bash
+    # Verificar que el servicio db esté corriendo
+    docker-compose ps
+    ```
 
-# Obtener experiencia laboral
-curl http://127.0.0.1:8000/api/portfolio/works
-```
+## 📄 Licencia
 
-## 🚨 **Solución de Problemas**
-
-### **Errores Comunes**
-
-#### **Puerto ocupado**
-
-```bash
-netstat -ano | findstr :8000
-taskkill /f /pid [PID]
-```
-
-#### **Base de datos**
-
-```bash
-php artisan migrate:fresh --seed
-```
-
-#### **Storage no funciona**
-
-```bash
-php artisan storage:link
-```
-
-## 👨‍💻 **Autor**
-
-**teckuro** - [GitHub](https://github.com/teckuro)
-
----
-
-**¡Listo para usar!** 🚀
+Este proyecto es privado y está destinado únicamente para uso personal del portafolio.

@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # Aplicación Laravel
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: portfolio-api
+    ports:
+      - "8000:80"
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=portfolio
+      - DB_USERNAME=root
+      - DB_PASSWORD=password
+      - CORS_ALLOWED_ORIGINS=http://localhost:4200,http://localhost:3000
+    volumes:
+      # Solo para desarrollo - montar código fuente
+      - .:/var/www/html
+      # Volumen persistente para storage
+      - storage_data:/var/www/html/storage
+    depends_on:
+      - db
+    networks:
+      - portfolio-network
+
+  # Base de datos MySQL
+  db:
+    image: mysql:8.0
+    container_name: portfolio-db
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=portfolio
+      - MYSQL_USER=portfolio_user
+      - MYSQL_PASSWORD=portfolio_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - portfolio-network
+
+  # phpMyAdmin (opcional para gestión de BD)
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: portfolio-phpmyadmin
+    environment:
+      - PMA_HOST=db
+      - PMA_PORT=3306
+      - PMA_USER=root
+      - PMA_PASSWORD=password
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    networks:
+      - portfolio-network
+
+volumes:
+  db_data:
+    driver: local
+  storage_data:
+    driver: local
+
+networks:
+  portfolio-network:
+    driver: bridge

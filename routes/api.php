@@ -12,493 +12,152 @@ use App\Http\Controllers\Api\WorkController;
 | API Routes
 |--------------------------------------------------------------------------
 |
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
+| Rutas limpias y organizadas para la API del portafolio
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+// ================================
+// RUTAS DE SALUD Y PRUEBA
+// ================================
 
-// Ruta de prueba para verificar que la API funciona
-Route::get('/test', function () {
+Route::get('/health', function () {
     return response()->json([
-        'message' => 'API del Portafolio funcionando correctamente',
-        'status' => 'success',
-        'timestamp' => now()->toISOString()
+        'status' => 'ok',
+        'service' => 'Portfolio API',
+        'timestamp' => now()->toISOString(),
+        'version' => '1.0.0'
     ]);
 });
 
-// Ruta temporal para ejecutar comandos de corrección de imágenes
-Route::post('/fix-images', function () {
-    try {
-        // Ejecutar comando para generar imágenes placeholder
-        \Artisan::call('images:generate-placeholders');
-        $generateOutput = \Artisan::output();
-        
-        // Ejecutar comando para corregir URLs
-        \Artisan::call('images:fix-urls');
-        $fixOutput = \Artisan::output();
-        
-        // Limpiar cache
-        \Artisan::call('cache:clear');
-        \Artisan::call('config:clear');
-        \Artisan::call('route:clear');
-        
-        return response()->json([
-            'success' => true,
-            'message' => 'Comandos ejecutados correctamente',
-            'generate_output' => $generateOutput,
-            'fix_output' => $fixOutput,
-            'timestamp' => now()->toISOString()
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Error ejecutando comandos: ' . $e->getMessage(),
-            'timestamp' => now()->toISOString()
-        ], 500);
-    }
-});
+// ================================
+// RUTAS DE ARCHIVOS ESTÁTICOS
+// ================================
 
-// Ruta para ejecutar comandos específicos en Railway
-Route::post('/execute-command', function (Request $request) {
-    try {
-        $command = $request->input('command');
-        
-        if (!$command) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Comando no especificado'
-            ], 400);
-        }
-        
-        $exitCode = \Artisan::call($command);
-        $output = \Artisan::output();
-        
-        return response()->json([
-            'success' => true,
-            'command' => $command,
-            'exit_code' => $exitCode,
-            'output' => $output,
-            'timestamp' => now()->toISOString()
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Error ejecutando comando: ' . $e->getMessage(),
-            'timestamp' => now()->toISOString()
-        ], 500);
-    }
-});
-
-// Ruta de prueba para servir un archivo específico
-Route::get('/test-file', function () {
-    $path = 'assets/uploads/projects/placeholder1.svg';
-    
-    if (!Storage::disk('public')->exists($path)) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Archivo no encontrado: ' . $path
-        ], 404);
-    }
-    
-    try {
-        $file = Storage::disk('public')->get($path);
-        $mimeType = Storage::disk('public')->mimeType($path);
-        
-        return response($file, 200, [
-            'Content-Type' => $mimeType ?: 'application/octet-stream',
-            'Cache-Control' => 'public, max-age=31536000',
-            'Access-Control-Allow-Origin' => '*',
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Error al servir el archivo: ' . $e->getMessage()
-        ], 500);
-    }
-});
-
-// Ruta para servir archivos específicos
-Route::get('/serve-file/{path}', function ($path) {
-    // Validar que la ruta sea segura
-    if (strpos($path, '..') !== false || strpos($path, '/') === 0) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Ruta no válida'
-        ], 400);
-    }
-    
-    // Construir la ruta completa
-    $fullPath = 'assets/uploads/' . $path;
-    
-    if (!Storage::disk('public')->exists($fullPath)) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Archivo no encontrado: ' . $fullPath
-        ], 404);
-    }
-    
-    try {
-        $file = Storage::disk('public')->get($fullPath);
-        $mimeType = Storage::disk('public')->mimeType($fullPath);
-        
-        return response($file, 200, [
-            'Content-Type' => $mimeType ?: 'application/octet-stream',
-            'Cache-Control' => 'public, max-age=31536000',
-            'Access-Control-Allow-Origin' => '*',
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Error al servir el archivo: ' . $e->getMessage()
-        ], 500);
-    }
-})->where('path', '.*');
-
-// Ruta de prueba para verificar si las imágenes se mueven correctamente
-Route::get('/test-image/{filename}', function ($filename) {
-    // Buscar la imagen en diferentes ubicaciones
-    $possiblePaths = [
-        'assets/uploads/projects/' . $filename,
-        'assets/uploads/works/' . $filename,
-        'assets/uploads/temp/' . $filename,
-        'projects/' . $filename,
-        'works/' . $filename,
-        'temp/' . $filename
-    ];
-    
-    foreach ($possiblePaths as $path) {
-        if (Storage::disk('public')->exists($path)) {
-            try {
-                $file = Storage::disk('public')->get($path);
-                $mimeType = Storage::disk('public')->mimeType($path);
-                $size = Storage::disk('public')->size($path);
-                
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Imagen encontrada',
-                    'data' => [
-                        'path' => $path,
-                        'size' => $size,
-                        'mime_type' => $mimeType,
-                        'exists' => true
-                    ]
-                ], 200);
-            } catch (\Exception $e) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Error al leer el archivo: ' . $e->getMessage(),
-                    'path' => $path
-                ], 500);
-            }
-        }
-    }
-    
-    // Si no se encuentra en ninguna ubicación
-    return response()->json([
-        'success' => false,
-        'message' => 'Archivo no encontrado en ninguna ubicación',
-        'searched_paths' => $possiblePaths
-    ], 404);
-});
-
-// Rutas específicas para imágenes placeholder (que sabemos que funcionan)
-Route::get('/placeholder/projects/1', function () {
-    $path = 'assets/uploads/projects/placeholder1.svg';
-    
-    if (!Storage::disk('public')->exists($path)) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Archivo no encontrado: ' . $path
-        ], 404);
-    }
-    
-    try {
-        $file = Storage::disk('public')->get($path);
-        $mimeType = Storage::disk('public')->mimeType($path);
-        
-        return response($file, 200, [
-            'Content-Type' => $mimeType ?: 'application/octet-stream',
-            'Cache-Control' => 'public, max-age=31536000',
-            'Access-Control-Allow-Origin' => '*',
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Error al servir el archivo: ' . $e->getMessage()
-        ], 500);
-    }
-});
-
-Route::get('/placeholder/projects/2', function () {
-    $path = 'assets/uploads/projects/placeholder2.svg';
-    
-    if (!Storage::disk('public')->exists($path)) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Archivo no encontrado: ' . $path
-        ], 404);
-    }
-    
-    try {
-        $file = Storage::disk('public')->get($path);
-        $mimeType = Storage::disk('public')->mimeType($path);
-        
-        return response($file, 200, [
-            'Content-Type' => $mimeType ?: 'application/octet-stream',
-            'Cache-Control' => 'public, max-age=31536000',
-            'Access-Control-Allow-Origin' => '*',
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Error al servir el archivo: ' . $e->getMessage()
-        ], 500);
-    }
-});
-
-Route::get('/placeholder/works/1', function () {
-    $path = 'assets/uploads/works/placeholder1.svg';
-    
-    if (!Storage::disk('public')->exists($path)) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Archivo no encontrado: ' . $path
-        ], 404);
-    }
-    
-    try {
-        $file = Storage::disk('public')->get($path);
-        $mimeType = Storage::disk('public')->mimeType($path);
-        
-        return response($file, 200, [
-            'Content-Type' => $mimeType ?: 'application/octet-stream',
-            'Cache-Control' => 'public, max-age=31536000',
-            'Access-Control-Allow-Origin' => '*',
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Error al servir el archivo: ' . $e->getMessage()
-        ], 500);
-    }
-});
-
-// Rutas alternativas para servir archivos (usando patrón diferente)
-Route::get('/images/projects/{filename}', function ($filename) {
-    $path = 'assets/uploads/projects/' . $filename;
-    
-    if (!Storage::disk('public')->exists($path)) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Archivo no encontrado: ' . $path
-        ], 404);
-    }
-    
-    try {
-        $file = Storage::disk('public')->get($path);
-        $mimeType = Storage::disk('public')->mimeType($path);
-        
-        return response($file, 200, [
-            'Content-Type' => $mimeType ?: 'application/octet-stream',
-            'Cache-Control' => 'public, max-age=31536000',
-            'Access-Control-Allow-Origin' => '*',
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Error al servir el archivo: ' . $e->getMessage()
-        ], 500);
-    }
-});
-
-Route::get('/images/works/{filename}', function ($filename) {
-    $path = 'assets/uploads/works/' . $filename;
-    
-    if (!Storage::disk('public')->exists($path)) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Archivo no encontrado: ' . $path
-        ], 404);
-    }
-    
-    try {
-        $file = Storage::disk('public')->get($path);
-        $mimeType = Storage::disk('public')->mimeType($path);
-        
-        return response($file, 200, [
-            'Content-Type' => $mimeType ?: 'application/octet-stream',
-            'Cache-Control' => 'public, max-age=31536000',
-            'Access-Control-Allow-Origin' => '*',
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Error al servir el archivo: ' . $e->getMessage()
-        ], 500);
-    }
-});
-
-Route::get('/images/temp/{filename}', function ($filename) {
-    $path = 'assets/uploads/temp/' . $filename;
-    
-    if (!Storage::disk('public')->exists($path)) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Archivo no encontrado: ' . $path
-        ], 404);
-    }
-    
-    try {
-        $file = Storage::disk('public')->get($path);
-        $mimeType = Storage::disk('public')->mimeType($path);
-        
-        return response($file, 200, [
-            'Content-Type' => $mimeType ?: 'application/octet-stream',
-            'Cache-Control' => 'public, max-age=31536000',
-            'Access-Control-Allow-Origin' => '*',
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Error al servir el archivo: ' . $e->getMessage()
-        ], 500);
-    }
-});
-
-// Ruta dinámica para servir archivos (DEBE ir DESPUÉS de las rutas específicas)
+// Servir archivos de forma dinámica
 Route::get('/files/{path}', function ($path) {
-    // La ruta llega como /files/projects/filename.png
-    // Necesitamos construir la ruta completa para storage
+    // Validar ruta
+    if (strpos($path, '..') !== false) {
+        return response()->json(['error' => 'Invalid path'], 400);
+    }
+    
     $fullPath = 'assets/uploads/' . $path;
     
     if (!Storage::disk('public')->exists($fullPath)) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Archivo no encontrado: ' . $fullPath
-        ], 404);
+        return response()->json(['error' => 'File not found'], 404);
     }
     
     try {
         $file = Storage::disk('public')->get($fullPath);
         $mimeType = Storage::disk('public')->mimeType($fullPath);
         
-        if (!$file) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al leer el archivo'
-            ], 500);
-        }
-        
         return response($file, 200, [
             'Content-Type' => $mimeType ?: 'application/octet-stream',
             'Cache-Control' => 'public, max-age=31536000',
             'Access-Control-Allow-Origin' => '*',
-            'Content-Length' => Storage::disk('public')->size($fullPath),
         ]);
     } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Error al servir el archivo: ' . $e->getMessage()
-        ], 500);
+        return response()->json(['error' => 'Unable to serve file'], 500);
     }
 })->where('path', '.*');
 
-// Ruta de diagnóstico para verificar la base de datos
-Route::get('/debug', function () {
+// Placeholders específicos
+Route::get('/placeholder/{category}/{number}', function ($category, $number) {
+    $path = "assets/uploads/{$category}/placeholder{$number}.svg";
+    
+    if (!Storage::disk('public')->exists($path)) {
+        return response()->json(['error' => 'Placeholder not found'], 404);
+    }
+    
     try {
-        // Verificar conexión a la base de datos
-        \DB::connection()->getPdo();
+        $file = Storage::disk('public')->get($path);
+        $mimeType = Storage::disk('public')->mimeType($path);
         
-        // Verificar si la tabla works existe
-        $tableExists = \Schema::hasTable('works');
-        
-        // Contar registros en la tabla works
-        $worksCount = $tableExists ? \App\Models\Work::count() : 0;
-        
-        return response()->json([
-            'database_connected' => true,
-            'works_table_exists' => $tableExists,
-            'works_count' => $worksCount,
-            'database_name' => \DB::connection()->getDatabaseName(),
-            'timestamp' => now()->toISOString()
+        return response($file, 200, [
+            'Content-Type' => $mimeType,
+            'Cache-Control' => 'public, max-age=31536000',
+            'Access-Control-Allow-Origin' => '*',
         ]);
     } catch (\Exception $e) {
-        return response()->json([
-            'database_connected' => false,
-            'error' => $e->getMessage(),
-            'timestamp' => now()->toISOString()
-        ], 500);
+        return response()->json(['error' => 'Unable to serve placeholder'], 500);
     }
+})->where(['category' => 'projects|works|temp', 'number' => '[0-9]+']);
+
+// ================================
+// RUTAS PÚBLICAS DEL PORTAFOLIO
+// ================================
+
+// Proyectos
+Route::prefix('projects')->group(function () {
+    Route::get('/', [ProjectController::class, 'index']);
+    Route::get('/featured', [ProjectController::class, 'featured']);
+    Route::get('/{id}', [ProjectController::class, 'show'])->where('id', '[0-9]+');
 });
 
-// Rutas públicas para el frontend (sin autenticación)
-Route::get('/projects', [ProjectController::class, 'index']);
-Route::get('/projects/featured', [ProjectController::class, 'featured']);
-Route::get('/projects/{id}', [ProjectController::class, 'show']);
-
-Route::get('/works', [WorkController::class, 'index']);
-Route::get('/works/current', [WorkController::class, 'current']);
-Route::get('/works/{id}', [WorkController::class, 'show']);
-
-// Rutas públicas de administración (solo lectura, sin autenticación)
-Route::prefix('admin')->group(function () {
-    // Rutas de solo lectura para el panel de administración
-    Route::get('/projects/stats', [\App\Http\Controllers\Api\Admin\ProjectController::class, 'stats']);
-    Route::get('/projects', [\App\Http\Controllers\Api\Admin\ProjectController::class, 'index']);
-    Route::get('/projects/{id}', [\App\Http\Controllers\Api\Admin\ProjectController::class, 'show']);
-
-    Route::get('/works/stats', [\App\Http\Controllers\Api\Admin\WorkController::class, 'stats']);
-    Route::get('/works', [\App\Http\Controllers\Api\Admin\WorkController::class, 'index']);
-    Route::get('/works/{id}', [\App\Http\Controllers\Api\Admin\WorkController::class, 'show']);
+// Experiencia laboral
+Route::prefix('works')->group(function () {
+    Route::get('/', [WorkController::class, 'index']);
+    Route::get('/current', [WorkController::class, 'current']);
+    Route::get('/{id}', [WorkController::class, 'show'])->where('id', '[0-9]+');
 });
 
-// Rutas públicas de autenticación
+// ================================
+// RUTAS DE ADMINISTRACIÓN PÚBLICAS
+// ================================
+
 Route::prefix('admin')->group(function () {
+    // Autenticación
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);
-});
 
-// Rutas públicas de upload (sin autenticación)
-Route::prefix('admin')->group(function () {
+    // Upload de archivos (público para facilitar desarrollo)
     Route::post('/upload', [\App\Http\Controllers\Api\Admin\UploadController::class, 'upload']);
-    Route::get('/upload', [\App\Http\Controllers\Api\Admin\UploadController::class, 'list']);
-    Route::delete('/upload/{filename}', [\App\Http\Controllers\Api\Admin\UploadController::class, 'delete']);
     Route::get('/upload/health', [\App\Http\Controllers\Api\Admin\UploadController::class, 'health']);
+    
+    // Estadísticas públicas (solo lectura)
+    Route::get('/projects/stats', [\App\Http\Controllers\Api\Admin\ProjectController::class, 'stats']);
+    Route::get('/works/stats', [\App\Http\Controllers\Api\Admin\WorkController::class, 'stats']);
 });
 
-// Rutas protegidas de administración (requieren autenticación)
+// ================================
+// RUTAS DE ADMINISTRACIÓN PROTEGIDAS
+// ================================
+
 Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
-    // Autenticación
+    // Perfil y sesión
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/profile', [AuthController::class, 'profile']);
 
-    // Gestión de proyectos (CRUD)
-    Route::post('/projects', [\App\Http\Controllers\Api\Admin\ProjectController::class, 'store']);
-    Route::put('/projects/{id}', [\App\Http\Controllers\Api\Admin\ProjectController::class, 'update']);
-    Route::delete('/projects/{id}', [\App\Http\Controllers\Api\Admin\ProjectController::class, 'destroy']);
-    Route::post('projects/{id}/toggle-featured', [\App\Http\Controllers\Api\Admin\ProjectController::class, 'toggleFeatured']);
-
-    // Gestión de experiencia laboral (CRUD)
-    Route::post('/works', [\App\Http\Controllers\Api\Admin\WorkController::class, 'store']);
-    Route::put('/works/{id}', [\App\Http\Controllers\Api\Admin\WorkController::class, 'update']);
-    Route::delete('/works/{id}', [\App\Http\Controllers\Api\Admin\WorkController::class, 'destroy']);
-    Route::post('works/{id}/toggle-current', [\App\Http\Controllers\Api\Admin\WorkController::class, 'toggleCurrent']);
+    // CRUD Proyectos
+    Route::prefix('projects')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\Admin\ProjectController::class, 'index']);
+        Route::post('/', [\App\Http\Controllers\Api\Admin\ProjectController::class, 'store']);
+        Route::get('/{id}', [\App\Http\Controllers\Api\Admin\ProjectController::class, 'show']);
+        Route::put('/{id}', [\App\Http\Controllers\Api\Admin\ProjectController::class, 'update']);
+        Route::delete('/{id}', [\App\Http\Controllers\Api\Admin\ProjectController::class, 'destroy']);
+        Route::post('/{id}/toggle-featured', [\App\Http\Controllers\Api\Admin\ProjectController::class, 'toggleFeatured']);
+    });
+    
+    // CRUD Experiencia laboral
+    Route::prefix('works')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\Admin\WorkController::class, 'index']);
+        Route::post('/', [\App\Http\Controllers\Api\Admin\WorkController::class, 'store']);
+        Route::get('/{id}', [\App\Http\Controllers\Api\Admin\WorkController::class, 'show']);
+        Route::put('/{id}', [\App\Http\Controllers\Api\Admin\WorkController::class, 'update']);
+        Route::delete('/{id}', [\App\Http\Controllers\Api\Admin\WorkController::class, 'destroy']);
+        Route::post('/{id}/toggle-current', [\App\Http\Controllers\Api\Admin\WorkController::class, 'toggleCurrent']);
+    });
+    
+    // Gestión de archivos
+    Route::prefix('upload')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\Admin\UploadController::class, 'list']);
+        Route::delete('/{filename}', [\App\Http\Controllers\Api\Admin\UploadController::class, 'delete']);
+    });
 });
 
-// Rutas públicas para el frontend (con prefijo portfolio como alternativa)
-Route::prefix('portfolio')->group(function () {
-    // Proyectos
-    Route::get('/projects', [ProjectController::class, 'index']);
-    Route::get('/projects/featured', [ProjectController::class, 'featured']);
-    Route::get('/projects/{id}', [ProjectController::class, 'show']);
+// ================================
+// RUTAS DE USUARIO AUTENTICADO
+// ================================
 
-    // Experiencia laboral
-    Route::get('/works', [WorkController::class, 'index']);
-    Route::get('/works/current', [WorkController::class, 'current']);
-    Route::get('/works/{id}', [WorkController::class, 'show']);
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    return $request->user();
 });
