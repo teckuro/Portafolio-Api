@@ -37,11 +37,20 @@ class FixImageUrls extends Command
         foreach ($projects as $project) {
             $updated = false;
 
+            // Corregir URLs de placeholder
+            if ($project->image_url && str_contains($project->image_url, 'via.placeholder.com')) {
+                // Reemplazar con URLs locales basadas en el título del proyecto
+                $project->image_url = $this->generateLocalImageUrl($project->title);
+                $updated = true;
+                $this->line("✓ Corregida URL de placeholder para proyecto: {$project->title}");
+            }
+
+            // Corregir URLs de storage
             if ($project->image_url && str_contains($project->image_url, '/storage/')) {
                 // Convertir de /storage/ a /api/files/
                 $project->image_url = str_replace('/storage/', '/api/files/', $project->image_url);
                 $updated = true;
-                $this->line("✓ Corregida URL de imagen para proyecto: {$project->title}");
+                $this->line("✓ Corregida URL de storage para proyecto: {$project->title}");
             }
 
             if ($updated) {
@@ -55,11 +64,20 @@ class FixImageUrls extends Command
         foreach ($works as $work) {
             $updated = false;
 
+            // Corregir URLs de placeholder
+            if ($work->image_url && str_contains($work->image_url, 'via.placeholder.com')) {
+                // Reemplazar con URLs locales basadas en la empresa
+                $work->image_url = $this->generateLocalImageUrl($work->company);
+                $updated = true;
+                $this->line("✓ Corregida URL de placeholder para trabajo: {$work->company}");
+            }
+
+            // Corregir URLs de storage
             if ($work->image_url && str_contains($work->image_url, '/storage/')) {
                 // Convertir de /storage/ a /api/files/
                 $work->image_url = str_replace('/storage/', '/api/files/', $work->image_url);
                 $updated = true;
-                $this->line("✓ Corregida URL de imagen para trabajo: {$work->company}");
+                $this->line("✓ Corregida URL de storage para trabajo: {$work->company}");
             }
 
             if ($updated) {
@@ -69,5 +87,18 @@ class FixImageUrls extends Command
         }
 
         $this->info("✅ Corrección completada. {$fixedCount} registros actualizados.");
+    }
+
+    /**
+     * Generar URL de imagen local basada en el título
+     */
+    private function generateLocalImageUrl($title): string
+    {
+        $baseUrl = 'https://web-production-eeecb.up.railway.app/api/files';
+        
+        // Crear un nombre de archivo basado en el título
+        $filename = strtolower(str_replace([' ', '-', '_'], '', $title)) . '.jpg';
+        
+        return "{$baseUrl}/projects/{$filename}";
     }
 }
