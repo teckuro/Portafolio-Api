@@ -159,32 +159,51 @@ Route::get('/serve-file/{path}', function ($path) {
     }
 })->where('path', '.*');
 
-// Ruta específica para la imagen del primer proyecto
-Route::get('/serve-project-image/1', function () {
-    $path = 'assets/uploads/projects/projects_1755894693_n3OLC5Ee.png';
+// Ruta de prueba para verificar si las imágenes se mueven correctamente
+Route::get('/test-image/{filename}', function ($filename) {
+    // Buscar la imagen en diferentes ubicaciones
+    $possiblePaths = [
+        'assets/uploads/projects/' . $filename,
+        'assets/uploads/works/' . $filename,
+        'assets/uploads/temp/' . $filename,
+        'projects/' . $filename,
+        'works/' . $filename,
+        'temp/' . $filename
+    ];
     
-    if (!Storage::disk('public')->exists($path)) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Archivo no encontrado: ' . $path
-        ], 404);
+    foreach ($possiblePaths as $path) {
+        if (Storage::disk('public')->exists($path)) {
+            try {
+                $file = Storage::disk('public')->get($path);
+                $mimeType = Storage::disk('public')->mimeType($path);
+                $size = Storage::disk('public')->size($path);
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Imagen encontrada',
+                    'data' => [
+                        'path' => $path,
+                        'size' => $size,
+                        'mime_type' => $mimeType,
+                        'exists' => true
+                    ]
+                ], 200);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al leer el archivo: ' . $e->getMessage(),
+                    'path' => $path
+                ], 500);
+            }
+        }
     }
     
-    try {
-        $file = Storage::disk('public')->get($path);
-        $mimeType = Storage::disk('public')->mimeType($path);
-        
-        return response($file, 200, [
-            'Content-Type' => $mimeType ?: 'application/octet-stream',
-            'Cache-Control' => 'public, max-age=31536000',
-            'Access-Control-Allow-Origin' => '*',
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Error al servir el archivo: ' . $e->getMessage()
-        ], 500);
-    }
+    // Si no se encuentra en ninguna ubicación
+    return response()->json([
+        'success' => false,
+        'message' => 'Archivo no encontrado en ninguna ubicación',
+        'searched_paths' => $possiblePaths
+    ], 404);
 });
 
 // Rutas específicas para imágenes placeholder (que sabemos que funcionan)
