@@ -30,6 +30,27 @@ Route::get('/test', function () {
     ]);
 });
 
+// Ruta para servir archivos de storage
+Route::get('/files/{path}', function ($path) {
+    $fullPath = 'assets/uploads/' . $path;
+    
+    if (!Storage::disk('public')->exists($fullPath)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Archivo no encontrado'
+        ], 404);
+    }
+    
+    $file = Storage::disk('public')->get($fullPath);
+    $mimeType = Storage::disk('public')->mimeType($fullPath);
+    
+    return response($file, 200, [
+        'Content-Type' => $mimeType,
+        'Cache-Control' => 'public, max-age=31536000',
+        'Access-Control-Allow-Origin' => '*',
+    ]);
+})->where('path', '.*');
+
 // Ruta de diagnóstico para verificar la base de datos
 Route::get('/debug', function () {
     try {

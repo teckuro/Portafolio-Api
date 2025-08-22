@@ -270,8 +270,8 @@ class UploadController extends Controller
             $baseUrl = 'https://web-production-eeecb.up.railway.app';
         }
         
-        // Construir la URL completa
-        $url = rtrim($baseUrl, '/') . '/storage/' . $path;
+        // Construir la URL completa usando la ruta de API
+        $url = rtrim($baseUrl, '/') . '/api/files/' . $path;
         
         return $url;
     }

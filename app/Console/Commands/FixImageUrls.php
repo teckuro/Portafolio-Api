@@ -37,8 +37,9 @@ class FixImageUrls extends Command
         foreach ($projects as $project) {
             $updated = false;
 
-            if ($project->image_url && str_contains($project->image_url, '127.0.0.1:8000')) {
-                $project->image_url = str_replace('http://127.0.0.1:8000', $baseUrl, $project->image_url);
+            if ($project->image_url && str_contains($project->image_url, '/storage/')) {
+                // Convertir de /storage/ a /api/files/
+                $project->image_url = str_replace('/storage/', '/api/files/', $project->image_url);
                 $updated = true;
                 $this->line("✓ Corregida URL de imagen para proyecto: {$project->title}");
             }
@@ -54,8 +55,9 @@ class FixImageUrls extends Command
         foreach ($works as $work) {
             $updated = false;
 
-            if ($work->image_url && str_contains($work->image_url, '127.0.0.1:8000')) {
-                $work->image_url = str_replace('http://127.0.0.1:8000', $baseUrl, $work->image_url);
+            if ($work->image_url && str_contains($work->image_url, '/storage/')) {
+                // Convertir de /storage/ a /api/files/
+                $work->image_url = str_replace('/storage/', '/api/files/', $work->image_url);
                 $updated = true;
                 $this->line("✓ Corregida URL de imagen para trabajo: {$work->company}");
             }
