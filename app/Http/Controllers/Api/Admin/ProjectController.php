@@ -14,6 +14,25 @@ class ProjectController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        // Asegurar que tech_stack y features sean arrays para todos los proyectos
+        $projects->each(function ($project) {
+            if (is_string($project->tech_stack)) {
+                try {
+                    $project->tech_stack = json_decode($project->tech_stack, true) ?? [];
+                } catch (\Exception $e) {
+                    $project->tech_stack = [];
+                }
+            }
+
+            if (is_string($project->features)) {
+                try {
+                    $project->features = json_decode($project->features, true) ?? [];
+                } catch (\Exception $e) {
+                    $project->features = [];
+                }
+            }
+        });
+
         return response()->json([
             'success' => true,
             'data' => $projects
@@ -23,6 +42,23 @@ class ProjectController extends Controller
     public function show($id)
     {
         $project = Project::findOrFail($id);
+
+        // Asegurar que tech_stack y features sean arrays
+        if (is_string($project->tech_stack)) {
+            try {
+                $project->tech_stack = json_decode($project->tech_stack, true) ?? [];
+            } catch (\Exception $e) {
+                $project->tech_stack = [];
+            }
+        }
+
+        if (is_string($project->features)) {
+            try {
+                $project->features = json_decode($project->features, true) ?? [];
+            } catch (\Exception $e) {
+                $project->features = [];
+            }
+        }
 
         return response()->json([
             'success' => true,
