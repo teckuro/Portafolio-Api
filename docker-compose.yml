@@ -1,11 +1,9 @@
 version: '3.8'
 
 services:
-  # Aplicación Laravel
+  # Aplicación Laravel desde Docker Hub
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: jhuerta20/portfolio-api:latest
     container_name: portfolio-api
     ports:
       - "8000:80"
@@ -20,8 +18,6 @@ services:
       - DB_PASSWORD=password
       - CORS_ALLOWED_ORIGINS=http://localhost:4200,http://localhost:3000
     volumes:
-      # Solo para desarrollo - montar código fuente
-      - .:/var/www/html
       # Volumen persistente para storage
       - storage_data:/var/www/html/storage
     depends_on:

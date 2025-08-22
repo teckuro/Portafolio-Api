@@ -1,10 +1,11 @@
-# Dockerfile simplificado para Laravel en Railway
-FROM php:8.2-fpm
+# Dockerfile optimizado para Laravel en Railway y Docker Hub
+FROM php:8.2-apache
 
 # Establecer directorio de trabajo
 WORKDIR /var/www/html
 
 # Variables de entorno
+ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 ENV TZ=UTC
 
 # Instalar dependencias del sistema
@@ -17,10 +18,14 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     zip \
     unzip \
-    nginx \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# Configurar Apache
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+RUN a2enmod rewrite headers
 
 # Instalar Composer
 COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
@@ -49,35 +54,31 @@ RUN mkdir -p storage/logs \
     && mkdir -p storage/app/public/assets/uploads/works \
     && mkdir -p storage/app/public/assets/uploads/temp
 
-# Configurar Nginx
-RUN echo 'server {\n\
-    listen 80;\n\
-    server_name localhost;\n\
-    root /var/www/html/public;\n\
-    index index.php index.html;\n\
+# Configurar Apache para Laravel
+RUN echo '<VirtualHost *:80>\n\
+    ServerName localhost\n\
+    DocumentRoot /var/www/html/public\n\
     \n\
-    location / {\n\
-        try_files $uri $uri/ /index.php?$query_string;\n\
-    }\n\
-    \n\
-    location ~ \.php$ {\n\
-        fastcgi_pass 127.0.0.1:9000;\n\
-        fastcgi_index index.php;\n\
-        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;\n\
-        include fastcgi_params;\n\
-    }\n\
+    <Directory /var/www/html/public>\n\
+        AllowOverride All\n\
+        Require all granted\n\
+    </Directory>\n\
     \n\
     # Headers para CORS\n\
-    add_header Access-Control-Allow-Origin "*" always;\n\
-    add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;\n\
-    add_header Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With" always;\n\
+    Header always set Access-Control-Allow-Origin "*"\n\
+    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"\n\
+    Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"\n\
     \n\
     # Configuración para archivos estáticos\n\
-    location ~* \.(jpg|jpeg|png|gif|svg|webp|css|js|ico)$ {\n\
-        expires 1M;\n\
-        add_header Cache-Control "public, max-age=2592000";\n\
-    }\n\
-}' > /etc/nginx/sites-available/default
+    <LocationMatch "\\.(jpg|jpeg|png|gif|svg|webp|css|js|ico)$">\n\
+        ExpiresActive On\n\
+        ExpiresDefault "access plus 1 month"\n\
+        Header set Cache-Control "public, max-age=2592000"\n\
+    </LocationMatch>\n\
+    \n\
+    ErrorLog ${APACHE_LOG_DIR}/error.log\n\
+    CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
+</VirtualHost>' > /etc/apache2/sites-available/000-default.conf
 
 # Script de inicialización
 RUN echo '#!/bin/bash\n\
@@ -114,9 +115,8 @@ php artisan db:seed --force --no-interaction\n\
 chown -R www-data:www-data /var/www/html/storage\n\
 chmod -R 775 /var/www/html/storage\n\
 \n\
-# Iniciar servicios\n\
-service nginx start\n\
-php-fpm' > /usr/local/bin/start.sh \
+# Iniciar Apache\n\
+exec apache2-foreground' > /usr/local/bin/start.sh \
     && chmod +x /usr/local/bin/start.sh
 
 # Exponer puerto
