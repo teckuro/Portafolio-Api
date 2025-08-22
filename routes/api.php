@@ -64,6 +64,8 @@ Route::post('/fix-images', function () {
 
 // Ruta para servir archivos de storage
 Route::get('/files/{path}', function ($path) {
+    // La ruta llega como /files/projects/filename.png
+    // Necesitamos construir la ruta completa para storage
     $fullPath = 'assets/uploads/' . $path;
     
     if (!Storage::disk('public')->exists($fullPath)) {
