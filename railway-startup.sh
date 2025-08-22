@@ -77,6 +77,10 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# Setup storage for Railway
+echo "Setting up storage..."
+php artisan storage:setup
+
 # Create storage link
 echo "Creating storage link..."
 php artisan storage:link
