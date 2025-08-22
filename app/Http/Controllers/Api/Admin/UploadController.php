@@ -95,8 +95,8 @@ class UploadController extends Controller
                 ], 500);
             }
 
-            // Generar URL pública
-            $url = Storage::disk('public')->url($fullPath);
+            // Generar URL pública con la URL base correcta
+            $url = $this->generatePublicUrl($fullPath);
 
             return response()->json([
                 'success' => true,
@@ -145,7 +145,7 @@ class UploadController extends Controller
                 $filename = basename($file);
                 $fileList[] = [
                     'filename' => $filename,
-                    'url' => Storage::disk('public')->url($file),
+                    'url' => $this->generatePublicUrl($file),
                     'path' => $file,
                     'size' => Storage::disk('public')->size($file),
                     'modified' => Storage::disk('public')->lastModified($file)
@@ -255,5 +255,24 @@ class UploadController extends Controller
                 'message' => 'Error en el servicio de upload: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Generar URL pública correcta según el environment
+     */
+    private function generatePublicUrl($path)
+    {
+        // Obtener la URL base según el environment
+        $baseUrl = config('app.url');
+        
+        // Si estamos en producción (Railway), usar la URL de Railway
+        if (app()->environment('production')) {
+            $baseUrl = 'https://web-production-eeecb.up.railway.app';
+        }
+        
+        // Construir la URL completa
+        $url = rtrim($baseUrl, '/') . '/storage/' . $path;
+        
+        return $url;
     }
 }
