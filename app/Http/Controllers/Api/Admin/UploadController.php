@@ -284,11 +284,8 @@ class UploadController extends Controller
             $baseUrl = 'https://web-production-eeecb.up.railway.app';
         }
         
-        // Extraer la parte relativa de la ruta (sin 'assets/uploads/')
-        $relativePath = str_replace('assets/uploads/', '', $path);
-        
         // Construir la URL completa usando la ruta de API
-        $url = rtrim($baseUrl, '/') . '/api/files/' . $relativePath;
+        $url = rtrim($baseUrl, '/') . '/api/files/' . $path;
         
         return $url;
     }
