@@ -150,8 +150,8 @@ Route::get('/serve-file', function () {
     }
 });
 
-// Rutas específicas para servir archivos por categoría (DEBEN ir ANTES de la ruta dinámica)
-Route::get('/files/projects/{filename}', function ($filename) {
+// Rutas alternativas para servir archivos (usando patrón diferente)
+Route::get('/images/projects/{filename}', function ($filename) {
     $path = 'assets/uploads/projects/' . $filename;
     
     if (!Storage::disk('public')->exists($path)) {
@@ -178,7 +178,7 @@ Route::get('/files/projects/{filename}', function ($filename) {
     }
 });
 
-Route::get('/files/works/{filename}', function ($filename) {
+Route::get('/images/works/{filename}', function ($filename) {
     $path = 'assets/uploads/works/' . $filename;
     
     if (!Storage::disk('public')->exists($path)) {
@@ -205,7 +205,7 @@ Route::get('/files/works/{filename}', function ($filename) {
     }
 });
 
-Route::get('/files/temp/{filename}', function ($filename) {
+Route::get('/images/temp/{filename}', function ($filename) {
     $path = 'assets/uploads/temp/' . $filename;
     
     if (!Storage::disk('public')->exists($path)) {
