@@ -48,6 +48,16 @@ php artisan fix:production-images
 echo "Creating storage link..."
 php artisan storage:link
 
+# Copiar imágenes si existen
+echo "Copying images to Railway..."
+if [ -f "scripts/copy-images-to-railway.sh" ]; then
+    chmod +x scripts/copy-images-to-railway.sh
+    ./scripts/copy-images-to-railway.sh
+else
+    echo "Copy script not found, creating placeholder images..."
+    php artisan images:generate-placeholders
+fi
+
 # Limpiar cache
 echo "Clearing cache..."
 php artisan config:clear
