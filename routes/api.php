@@ -160,6 +160,88 @@ Route::get('/test-file', function () {
     }
 });
 
+// Rutas específicas para servir archivos por categoría
+Route::get('/files/projects/{filename}', function ($filename) {
+    $path = 'assets/uploads/projects/' . $filename;
+    
+    if (!Storage::disk('public')->exists($path)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Archivo no encontrado: ' . $path
+        ], 404);
+    }
+    
+    try {
+        $file = Storage::disk('public')->get($path);
+        $mimeType = Storage::disk('public')->mimeType($path);
+        
+        return response($file, 200, [
+            'Content-Type' => $mimeType ?: 'application/octet-stream',
+            'Cache-Control' => 'public, max-age=31536000',
+            'Access-Control-Allow-Origin' => '*',
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al servir el archivo: ' . $e->getMessage()
+        ], 500);
+    }
+});
+
+Route::get('/files/works/{filename}', function ($filename) {
+    $path = 'assets/uploads/works/' . $filename;
+    
+    if (!Storage::disk('public')->exists($path)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Archivo no encontrado: ' . $path
+        ], 404);
+    }
+    
+    try {
+        $file = Storage::disk('public')->get($path);
+        $mimeType = Storage::disk('public')->mimeType($path);
+        
+        return response($file, 200, [
+            'Content-Type' => $mimeType ?: 'application/octet-stream',
+            'Cache-Control' => 'public, max-age=31536000',
+            'Access-Control-Allow-Origin' => '*',
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al servir el archivo: ' . $e->getMessage()
+        ], 500);
+    }
+});
+
+Route::get('/files/temp/{filename}', function ($filename) {
+    $path = 'assets/uploads/temp/' . $filename;
+    
+    if (!Storage::disk('public')->exists($path)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Archivo no encontrado: ' . $path
+        ], 404);
+    }
+    
+    try {
+        $file = Storage::disk('public')->get($path);
+        $mimeType = Storage::disk('public')->mimeType($path);
+        
+        return response($file, 200, [
+            'Content-Type' => $mimeType ?: 'application/octet-stream',
+            'Cache-Control' => 'public, max-age=31536000',
+            'Access-Control-Allow-Origin' => '*',
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al servir el archivo: ' . $e->getMessage()
+        ], 500);
+    }
+});
+
 // Ruta de diagnóstico para verificar la base de datos
 Route::get('/debug', function () {
     try {
