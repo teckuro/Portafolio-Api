@@ -1,0 +1,130 @@
+# Dockerfile optimizado para Laravel en Railway y Docker Hub
+FROM php:8.2-apache
+
+# Establecer directorio de trabajo
+WORKDIR /var/www/html
+
+# Variables de entorno
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+ENV TZ=UTC
+
+# Instalar dependencias del sistema (capa separada para mejor cache)
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    libzip-dev \
+    zip \
+    unzip \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Configurar Apache (capa separada)
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf \
+    && sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf \
+    && a2enmod rewrite headers expires \
+    && echo "ServerName localhost" >> /etc/apache2/apache2.conf
+
+# Instalar Composer
+COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
+
+# Copiar solo archivos de configuración primero (mejor cache)
+COPY composer.json composer.lock ./
+
+# Instalar dependencias de PHP (capa separada)
+RUN composer install --no-dev --optimize-autoloader --no-scripts
+
+# Copiar archivos de configuración de la aplicación
+COPY .env.example ./
+COPY artisan ./
+COPY bootstrap/ ./bootstrap/
+COPY config/ ./config/
+COPY database/ ./database/
+COPY resources/ ./resources/
+COPY routes/ ./routes/
+COPY storage/ ./storage/
+
+# Copiar el resto de archivos de la aplicación
+COPY app/ ./app/
+COPY public/ ./public/
+COPY vendor/ ./vendor/
+
+# Establecer permisos correctos
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html \
+    && chmod -R 775 /var/www/html/storage \
+    && chmod -R 775 /var/www/html/bootstrap/cache
+
+# Crear directorios de storage
+RUN mkdir -p storage/logs \
+    && mkdir -p storage/framework/cache \
+    && mkdir -p storage/framework/sessions \
+    && mkdir -p storage/framework/views \
+    && mkdir -p storage/app/public/assets/uploads/projects \
+    && mkdir -p storage/app/public/assets/uploads/works \
+    && mkdir -p storage/app/public/assets/uploads/temp
+
+# Configurar Apache para Laravel
+RUN echo '<VirtualHost *:80>\n\
+    ServerName localhost\n\
+    DocumentRoot /var/www/html/public\n\
+    \n\
+    <Directory /var/www/html/public>\n\
+    AllowOverride All\n\
+    Require all granted\n\
+    </Directory>\n\
+    \n\
+    # CORS manejado por Laravel\n\
+    \n\
+    # Configuración para archivos estáticos\n\
+    <LocationMatch "\\.(jpg|jpeg|png|gif|svg|webp|css|js|ico)$">\n\
+    ExpiresActive On\n\
+    ExpiresDefault "access plus 1 month"\n\
+    Header set Cache-Control "public, max-age=2592000"\n\
+    </LocationMatch>\n\
+    \n\
+    # Configuración para rutas de storage\n\
+    Alias /storage /var/www/html/storage/app/public\n\
+    <Directory /var/www/html/storage/app/public>\n\
+    AllowOverride All\n\
+    Require all granted\n\
+    </Directory>\n\
+    \n\
+    ErrorLog ${APACHE_LOG_DIR}/error.log\n\
+    CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
+    </VirtualHost>' > /etc/apache2/sites-available/000-default.conf
+
+# Script de inicialización
+RUN echo '#!/bin/bash\n\
+    set -e\n\
+    \n\
+    # Generar key si no existe\n\
+    if [ ! -f .env ]; then\n\
+    cp .env.example .env\n\
+    fi\n\
+    \n\
+    # Verificar si APP_KEY está vacía\n\
+    if ! grep -q "APP_KEY=base64:" .env; then\n\
+    php artisan key:generate\n\
+    fi\n\
+    \n\
+    # Ejecutar migraciones\n\
+    php artisan migrate --force\n\
+    \n\
+    # Limpiar cache\n\
+    php artisan config:clear\n\
+    php artisan cache:clear\n\
+    php artisan view:clear\n\
+    \n\
+    # Iniciar Apache\n\
+    exec apache2-foreground' > /usr/local/bin/start.sh \
+    && chmod +x /usr/local/bin/start.sh
+
+# Exponer puerto
+EXPOSE 80
+
+# Comando por defecto
+CMD ["/usr/local/bin/start.sh"]

@@ -1,43 +1,71 @@
-# Git
-.git
-.gitignore
-
-# Node modules
-node_modules
-npm-debug.log
-
-# Environment files
+# Archivos de desarrollo
 .env
-.env.*
-!.env.example
+.env.local
+.env.development
+.env.testing
+.env.production
 
-# IDE
-.vscode
-.idea
-*.swp
-*.swo
+# Logs
+*.log
+storage/logs/*
+!storage/logs/.gitkeep
 
-# OS
+# Cache
+storage/framework/cache/*
+!storage/framework/cache/.gitkeep
+storage/framework/sessions/*
+!storage/framework/sessions/.gitkeep
+storage/framework/views/*
+!storage/framework/views/.gitkeep
+
+# Archivos temporales
+*.tmp
+*.temp
 .DS_Store
 Thumbs.db
 
-# Laravel logs and cache
-/storage/logs/*
-/storage/framework/cache/*
-/storage/framework/sessions/*
-/storage/framework/views/*
-/bootstrap/cache/*
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
 
-# Composer
-composer.phar
+# Git
+.git/
+.gitignore
 
-# Tests
-tests
+# Node modules (si los hay)
+node_modules/
+npm-debug.log*
+
+# Archivos de build
+build/
+dist/
+
+# Archivos de testing
+tests/
 phpunit.xml
+.phpunit.result.cache
 
-# Development
-docker-compose.yml
+# Archivos de documentación
+README.md
+CHANGELOG.md
+*.md
+
+# Archivos de Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Archivos de Railway
+railway.toml
+railway-connect.ps1
+railway-debug.ps1
+
+# Archivos de scripts
+*.bat
+*.sh
+build-and-push.*
+
+# Archivos de configuración local
 docker-compose.override.yml
-
-# Storage symlink
-public/storage
