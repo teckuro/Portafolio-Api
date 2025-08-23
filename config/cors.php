@@ -27,6 +27,8 @@ return [
         'https://angular-portafolio.vercel.app',
         'https://angular-portafolio-git-master-teckuro.vercel.app',
         'https://angular-portafolio-teckuro.vercel.app',
+        'https://angular-portafolio-phi.vercel.app',
+        'https://portfolio-angular-2025.vercel.app',
         'https://*.vercel.app', 
         'https://*.netlify.app', 
         'https://*.github.io', 

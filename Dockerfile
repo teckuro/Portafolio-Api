@@ -67,10 +67,7 @@ RUN echo '<VirtualHost *:80>\n\
     Require all granted\n\
     </Directory>\n\
     \n\
-    # Headers para CORS\n\
-    Header always set Access-Control-Allow-Origin "*"\n\
-    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"\n\
-    Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"\n\
+    # CORS manejado por Laravel\n\
     \n\
     # Configuración para archivos estáticos\n\
     <LocationMatch "\\.(jpg|jpeg|png|gif|svg|webp|css|js|ico)$">\n\
