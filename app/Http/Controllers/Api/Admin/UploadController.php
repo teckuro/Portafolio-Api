@@ -276,14 +276,14 @@ class UploadController extends Controller
      */
     private function generatePublicUrl($path)
     {
-        // Obtener la URL base según el environment
-        $baseUrl = config('app.url');
+        // Forzar URL de Railway para producción
+        $baseUrl = 'https://api-portafolio.up.railway.app';
         
-        // Si estamos en Railway (producción), usar la URL de Railway
-        if (app()->environment('production') || 
-            config('app.env') === 'production' || 
-            str_contains(request()->getHost(), 'railway')) {
-            $baseUrl = 'https://api-portafolio.up.railway.app';
+        // Solo usar localhost en desarrollo local
+        if (app()->environment('local') && 
+            !str_contains(request()->getHost(), 'railway') &&
+            !str_contains(request()->getHost(), 'vercel')) {
+            $baseUrl = config('app.url');
         }
         
         // Construir la URL completa usando la ruta de API
