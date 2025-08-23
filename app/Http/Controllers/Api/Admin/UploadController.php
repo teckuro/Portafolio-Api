@@ -281,7 +281,7 @@ class UploadController extends Controller
         
         // Si estamos en producción (Railway), usar la URL de Railway
         if (app()->environment('production')) {
-            $baseUrl = 'https://web-production-eeecb.up.railway.app';
+            $baseUrl = 'https://api-portafolio.up.railway.app';
         }
         
         // Construir la URL completa usando la ruta de API
