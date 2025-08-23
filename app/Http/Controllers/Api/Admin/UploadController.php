@@ -144,12 +144,9 @@ class UploadController extends Controller
             $category = $request->input('category', 'temp');
             $path = $this->uploadPath . '/' . $category;
 
+            // Crear directorio si no existe
             if (!Storage::disk('public')->exists($path)) {
-                return response()->json([
-                    'success' => true,
-                    'data' => [],
-                    'message' => 'No hay archivos en esta categoría'
-                ]);
+                Storage::disk('public')->makeDirectory($path);
             }
 
             $files = Storage::disk('public')->files($path);
@@ -159,7 +156,7 @@ class UploadController extends Controller
                 $filename = basename($file);
                 $fileList[] = [
                     'filename' => $filename,
-                    'url' => $this->generatePublicUrl($file),
+                    'url' => 'https://api-portafolio.up.railway.app/api/files/' . $file,
                     'path' => $file,
                     'size' => Storage::disk('public')->size($file),
                     'modified' => Storage::disk('public')->lastModified($file)

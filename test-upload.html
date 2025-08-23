@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Upload API</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; border: 1px solid #bee5eb; }
+    </style>
+</head>
+<body>
+    <h1>Test Upload API</h1>
+    
+    <div id="status" class="result info">Verificando estado de la API...</div>
+    
+    <form id="uploadForm">
+        <input type="file" id="imageFile" accept="image/*" required>
+        <select id="category">
+            <option value="temp">Temporal</option>
+            <option value="projects">Proyectos</option>
+            <option value="works">Trabajos</option>
+        </select>
+        <button type="submit">Subir Imagen</button>
+    </form>
+    
+    <div id="result"></div>
+    
+    <script>
+        const API_BASE = 'https://api-portafolio.up.railway.app/api';
+        
+        // Verificar estado de la API
+        async function checkAPIStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                document.getElementById('status').innerHTML = 
+                    `<strong>API Status:</strong> ${data.status} - ${data.service} (v${data.version})`;
+                document.getElementById('status').className = 'result success';
+            } catch (error) {
+                document.getElementById('status').innerHTML = 
+                    `<strong>Error:</strong> No se puede conectar con la API`;
+                document.getElementById('status').className = 'result error';
+            }
+        }
+        
+        // Subir imagen
+        async function uploadImage(file, category) {
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('category', category);
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('result').innerHTML = `
+                        <div class="result success">
+                            <h3>✅ Upload Exitoso</h3>
+                            <p><strong>Archivo:</strong> ${result.data.filename}</p>
+                            <p><strong>URL:</strong> <a href="${result.data.url}" target="_blank">${result.data.url}</a></p>
+                            <p><strong>Ruta:</strong> ${result.data.path}</p>
+                            <img src="${result.data.url}" style="max-width: 200px; border: 1px solid #ccc;" alt="Imagen subida">
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('result').innerHTML = `
+                        <div class="result error">
+                            <h3>❌ Error en Upload</h3>
+                            <p><strong>Mensaje:</strong> ${result.message}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = `
+                    <div class="result error">
+                        <h3>❌ Error de Conexión</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Event listeners
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const file = document.getElementById('imageFile').files[0];
+            const category = document.getElementById('category').value;
+            
+            if (!file) {
+                alert('Por favor selecciona un archivo');
+                return;
+            }
+            
+            document.getElementById('result').innerHTML = '<div class="result info">Subiendo imagen...</div>';
+            await uploadImage(file, category);
+        });
+        
+        // Verificar estado al cargar
+        checkAPIStatus();
+    </script>
+</body>
+</html>

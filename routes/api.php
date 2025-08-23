@@ -112,6 +112,9 @@ Route::prefix('admin')->group(function () {
     // Upload de archivos (público para facilitar desarrollo)
     Route::post('/upload', [\App\Http\Controllers\Api\Admin\UploadController::class, 'upload']);
     Route::get('/upload/health', [\App\Http\Controllers\Api\Admin\UploadController::class, 'health']);
+    Route::get('/upload', [\App\Http\Controllers\Api\Admin\UploadController::class, 'list']);
+    
+
     
     // Estadísticas públicas (solo lectura)
     Route::get('/projects/stats', [\App\Http\Controllers\Api\Admin\ProjectController::class, 'stats']);
@@ -173,6 +176,18 @@ Route::get('/debug/upload-controller', function () {
             'app_env' => config('app.env'),
             'host' => request()->getHost(),
             'base_url' => config('app.url')
+        ]
+    ]);
+});
+
+// Endpoint de prueba simple para listado
+Route::get('/upload-test', function () {
+    return response()->json([
+        'success' => true,
+        'message' => 'Endpoint de prueba funcionando',
+        'data' => [
+            'timestamp' => now()->toISOString(),
+            'category' => request()->input('category', 'temp')
         ]
     ]);
 });
