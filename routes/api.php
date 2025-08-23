@@ -154,6 +154,29 @@ Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
     });
 });
 
+// Endpoint temporal para verificar versión del código
+Route::get('/debug/upload-controller', function () {
+    $controller = new \App\Http\Controllers\Api\Admin\UploadController();
+    $reflection = new ReflectionClass($controller);
+    $method = $reflection->getMethod('generatePublicUrl');
+    $startLine = $method->getStartLine();
+    $endLine = $method->getEndLine();
+    
+    $file = file($reflection->getFileName());
+    $methodCode = implode('', array_slice($file, $startLine - 1, $endLine - $startLine + 1));
+    
+    return response()->json([
+        'success' => true,
+        'data' => [
+            'method_code' => $methodCode,
+            'environment' => app()->environment(),
+            'app_env' => config('app.env'),
+            'host' => request()->getHost(),
+            'base_url' => config('app.url')
+        ]
+    ]);
+});
+
 // ================================
 // RUTAS DE USUARIO AUTENTICADO
 // ================================

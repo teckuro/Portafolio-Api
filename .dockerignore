@@ -69,3 +69,7 @@ build-and-push.*
 
 # Archivos de configuración local
 docker-compose.override.yml
+
+# Excluir archivos específicos pero mantener estructura
+public/storage
+!public/storage/.gitkeep
