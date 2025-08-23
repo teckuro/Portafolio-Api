@@ -279,8 +279,10 @@ class UploadController extends Controller
         // Obtener la URL base según el environment
         $baseUrl = config('app.url');
         
-        // Si estamos en producción (Railway), usar la URL de Railway
-        if (app()->environment('production')) {
+        // Si estamos en Railway (producción), usar la URL de Railway
+        if (app()->environment('production') || 
+            config('app.env') === 'production' || 
+            str_contains(request()->getHost(), 'railway')) {
             $baseUrl = 'https://api-portafolio.up.railway.app';
         }
         
