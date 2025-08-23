@@ -27,6 +27,9 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-av
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 RUN a2enmod rewrite headers expires
 
+# Configurar ServerName global para evitar advertencias
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+
 # Instalar Composer
 COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
 
@@ -75,6 +78,13 @@ RUN echo '<VirtualHost *:80>\n\
     ExpiresDefault "access plus 1 month"\n\
     Header set Cache-Control "public, max-age=2592000"\n\
     </LocationMatch>\n\
+    \n\
+    # Configuración para rutas de storage\n\
+    Alias /storage /var/www/html/storage/app/public\n\
+    <Directory /var/www/html/storage/app/public>\n\
+    AllowOverride All\n\
+    Require all granted\n\
+    </Directory>\n\
     \n\
     ErrorLog ${APACHE_LOG_DIR}/error.log\n\
     CustomLog ${APACHE_LOG_DIR}/access.log combined\n\

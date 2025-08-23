@@ -41,3 +41,4 @@ echo "🗄️  phpMyAdmin disponible en: http://localhost:8080"
 echo ""
 echo "Para detener: docker-compose down"
 echo "Para ver logs: docker-compose logs -f"
+

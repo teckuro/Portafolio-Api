@@ -136,9 +136,17 @@ docker run -p 8000:80 portfolio-api
     ```
 
 3. **Permisos de storage:**
+
     ```bash
     # Montar volumen para storage
     docker run -v ./storage:/var/www/html/storage jhuerta20/portfolio-api:latest
+    ```
+
+4. **Advertencias de Apache ServerName:**
+    ```bash
+    # Este problema ya está solucionado en la imagen
+    # Si aparece, actualizar a la última versión
+    docker pull jhuerta20/api-portafolio:latest
     ```
 
 ## 📝 Notas
@@ -149,3 +157,4 @@ docker run -p 8000:80 portfolio-api
 -   ✅ **Extensiones PHP** necesarias incluidas
 -   ✅ **Composer** pre-instalado
 -   ✅ **Scripts de inicialización** automáticos
+-   ✅ **ServerName configurado** para evitar advertencias de Apache

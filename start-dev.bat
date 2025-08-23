@@ -45,3 +45,4 @@ echo.
 echo Para detener: docker-compose down
 echo Para ver logs: docker-compose logs -f
 pause
+
