@@ -114,8 +114,6 @@ Route::prefix('admin')->group(function () {
     Route::get('/upload/health', [\App\Http\Controllers\Api\Admin\UploadController::class, 'health']);
     Route::get('/upload', [\App\Http\Controllers\Api\Admin\UploadController::class, 'list']);
     
-
-    
     // Estadísticas públicas (solo lectura)
     Route::get('/projects/stats', [\App\Http\Controllers\Api\Admin\ProjectController::class, 'stats']);
     Route::get('/works/stats', [\App\Http\Controllers\Api\Admin\WorkController::class, 'stats']);
@@ -156,8 +154,6 @@ Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
         Route::delete('/{filename}', [\App\Http\Controllers\Api\Admin\UploadController::class, 'delete']);
     });
 });
-
-
 
 // ================================
 // RUTAS DE USUARIO AUTENTICADO
