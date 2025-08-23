@@ -283,8 +283,11 @@ class UploadController extends Controller
             $baseUrl = config('app.url');
         }
         
+        // Extraer la parte de la ruta después de 'assets/uploads/'
+        $relativePath = str_replace('assets/uploads/', '', $path);
+        
         // Construir la URL completa usando la ruta de API
-        $url = rtrim($baseUrl, '/') . '/api/files/' . $path;
+        $url = rtrim($baseUrl, '/') . '/api/files/' . $relativePath;
         
         return $url;
     }
